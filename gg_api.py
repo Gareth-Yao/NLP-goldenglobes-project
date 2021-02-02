@@ -6,6 +6,7 @@ from textblob import TextBlob
 import heapq
 from urllib import request
 import gzip
+import re
 
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
@@ -61,25 +62,38 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 def get_hosts(year, data, actors):
     names = {}
     processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text']]
-
+    re_search = {}
     for tweet in processed_data:
-        text = TextBlob(tweet['text'])
-
-        for noun in text.noun_phrases:
+        # text = TextBlob(tweet['text'])
+        text = tweet['text'].split(' ')
+        capitalized_words = []
+        temp = ""
+        for word in text:
+            if len(word) > 0 and word[0].isupper():
+                temp += " " + word
+            elif  temp != "":
+                capitalized_words.append(temp.lower()[1:])
+                temp = ""
+        if temp != "":
+            capitalized_words.append(temp.lower()[1:])
+        for noun in capitalized_words:
+            # if noun not in re_search.keys():
+            #     # p = re.compile('^' + noun + '.*')
+            #     # filtered_actors = list(filter(p.match, actors))
+            #     filtered_actors = [x for x in actors if x.startswith(noun)]
+            #     re_search[noun] = filtered_actors
+            # filtered_actors = re_search[noun]
+            # for name in filtered_actors:
+            #     names[name] = names.get(name, 0) + 1
             if noun in actors:
-                if ' ' not in noun:
-                    for name in names:
-                        if name.startswith(noun):
-                            names[name] = names.get(name, 0) + 1
-                elif noun not in names.keys():
-                    for name in names:
-                        if noun.startswith(name):
-                            names[name] = names[noun] + 1
                 names[noun] = names.get(noun, 0) + 1
-
-
-
-
+            # if noun not in re_search.keys():
+            #     re_search[noun] = heapq.nlargest(10, names, key=names.get)
+            # n = re_search[noun]
+            n = list(names.keys())
+            for name in n[:10]:
+                if name.startswith(noun):
+                    names[name] = names[name] + 1
 
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
@@ -160,8 +174,12 @@ def pre_ceremony(year):
     actors_zipped = gzip.GzipFile(fileobj=actors_download)
     actors_zipped.readline()
     for line in actors_zipped:
-        actor = line.decode('UTF-8').split('\t')[1].lower()
-        actors.append(actor)
+        actor_info = line.decode('UTF-8').split('\t')
+        if(actor_info[1] == 'Tina Fey'):
+            print(actor_info)
+        if actor_info[2] == '\\N':
+            continue
+        actors.append(actor_info[1].lower())
     with open('actors.txt', 'w', encoding='UTF-8') as actors_file:
         for actor in actors:
             actors_file.write('%s\n' % actor)
@@ -206,7 +224,7 @@ def pre_ceremony(year):
 def main():
     with open(sys.argv[1]) as f:
         data = json.load(f)
-    pre_ceremony(2013)
+    # pre_ceremony(2013)
     with open('titles.json', encoding='UTF-8') as f:
         titles = json.load(f)
     with open('actors.txt', 'r', encoding='UTF-8') as f:
@@ -214,7 +232,8 @@ def main():
     # May be unnecessary
     # preprocessed_data = [x for x in data if '#GoldenGlobes' in x['text'] or '#goldenglobes' in x['text']]
     download_corpora.main()
-    get_hosts(2013, data, actors)
+    hosts = get_hosts(2013, data, actors)
+    print(hosts)
     # get_winner(2013, data)
     # get_nominees(2013, data)
     '''This function calls your program. Typing "python gg_api.py"
