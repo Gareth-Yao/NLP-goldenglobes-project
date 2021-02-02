@@ -8,6 +8,7 @@ from urllib import request
 import gzip
 import re
 import spacy
+from collections import Counter
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
                         'best performance by an actress in a motion picture - drama',
@@ -162,37 +163,50 @@ def get_presenters(year, data, actors, awards):
         best_match, max_common_words = "", 0
         for award in awards:
             common_words = list(set(twt)&set(award))
-            if len(common_words) >= max_common_words:
-                max_common_words = len(common_words)
+            n = len(common_words)+1 if 'supporting' in common_words else len(common_words)
+            if n > max_common_words:
+                max_common_words = n
                 best_match = award
         return best_match if max_common_words > 2 else None
-
-    presenters, award_name_dict, processed_data, awards_lst = {}, {}, [], []
+    
+    presenters_preproc, presenters, award_name_dict, processed_data, awards_lst = {}, {}, {}, [], []
     keywords = ['presenter','present','presents','presenters','presented by']
     nlp = spacy.load("en_core_web_sm")
     all_stopwords = nlp.Defaults.stop_words
    
     for award in awards:
+        temp_award = award
+        presenters_preproc.update({award: []})
         award = award.replace('-', '').replace('.','')
         award_tokens = award.split(' ')
         awards_wo_sw = [word for word in award_tokens if not word in all_stopwords] # remove stopwords from award name
         awards_wo_sw = [x for x in awards_wo_sw if x != '']
         awards_lst.append(awards_wo_sw)
-        award_name_dict.update({award: awards_wo_sw}) # map real name to tokens we're using so we can use this in the future for printing 
+        award_name_dict.update({str(awards_wo_sw): temp_award}) # map real name to tokens we're using so we can use this in the future for printing 
     for tweet in data:
-        lower = tweet['text'].lower().replace('-', '').replace('.','')
+        lower = tweet['text'].lower()
+        lower = re.sub(r'[^\w\s]','',lower)
         if any(word in lower for word in keywords):
             processed_data.append(lower)
     for tw in processed_data:
-        doc = nlp(tw)
+        ppl = []
         tw_tokens = tw.split(' ')
-        nouns = doc.noun_chunks
         correct_award = find_award(tw_tokens, awards_lst)
         if correct_award is not None:
-            print(correct_award)
-            print(tw)
-        #for noun in doc.noun_chunks:
-            #if str(noun) in actors: 
+            for i in range(len(tw_tokens)-1):
+                possible_name = tw_tokens[i] + ' ' + tw_tokens[i+1]
+                if possible_name in actors:
+                    ppl.append(str(possible_name))
+            if len(ppl) > 0:
+                correct_award_name = award_name_dict.get(str(correct_award))
+                presenters_preproc[correct_award_name].extend(ppl)
+    for award in awards:
+        count = Counter(presenters_preproc[award])
+        num_pres = 1 if award == 'cecil b. demille award' else 2
+        pres_sorted = sorted(count.items(), key=lambda x: x[1], reverse=True)[:num_pres]
+        arr = [person[0] for person in pres_sorted]
+        presenters.update({award: arr})
+    print(presenters)
     return presenters
 
 
