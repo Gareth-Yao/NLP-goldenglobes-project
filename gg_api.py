@@ -7,7 +7,7 @@ import heapq
 from urllib import request
 import gzip
 import re
-
+import spacy
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
                         'best performance by an actress in a motion picture - drama',
@@ -153,12 +153,46 @@ def get_winner(year, data):
     return winners
 
 
-def get_presenters(year):
+def get_presenters(year, data, actors, awards):
     '''Presenters is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
     # Your code here
-    presenters = []
+    def find_award(twt, awards):
+        best_match, max_common_words = "", 0
+        for award in awards:
+            common_words = list(set(twt)&set(award))
+            if len(common_words) >= max_common_words:
+                max_common_words = len(common_words)
+                best_match = award
+        return best_match if max_common_words > 2 else None
+
+    presenters, award_name_dict, processed_data, awards_lst = {}, {}, [], []
+    keywords = ['presenter','present','presents','presenters','presented by']
+    nlp = spacy.load("en_core_web_sm")
+    all_stopwords = nlp.Defaults.stop_words
+   
+    for award in awards:
+        award = award.replace('-', '').replace('.','')
+        award_tokens = award.split(' ')
+        awards_wo_sw = [word for word in award_tokens if not word in all_stopwords] # remove stopwords from award name
+        awards_wo_sw = [x for x in awards_wo_sw if x != '']
+        awards_lst.append(awards_wo_sw)
+        award_name_dict.update({award: awards_wo_sw}) # map real name to tokens we're using so we can use this in the future for printing 
+    for tweet in data:
+        lower = tweet['text'].lower().replace('-', '').replace('.','')
+        if any(word in lower for word in keywords):
+            processed_data.append(lower)
+    for tw in processed_data:
+        doc = nlp(tw)
+        tw_tokens = tw.split(' ')
+        nouns = doc.noun_chunks
+        correct_award = find_award(tw_tokens, awards_lst)
+        if correct_award is not None:
+            print(correct_award)
+            print(tw)
+        #for noun in doc.noun_chunks:
+            #if str(noun) in actors: 
     return presenters
 
 
@@ -232,8 +266,12 @@ def main():
     # May be unnecessary
     # preprocessed_data = [x for x in data if '#GoldenGlobes' in x['text'] or '#goldenglobes' in x['text']]
     download_corpora.main()
-    hosts = get_hosts(2013, data, actors)
-    print(hosts)
+    
+    # emmy - for spacy in presenters
+    
+    #hosts = get_hosts(2013, data, actors)
+    #print(hosts)
+    get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
     # get_winner(2013, data)
     # get_nominees(2013, data)
     '''This function calls your program. Typing "python gg_api.py"
