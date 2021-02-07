@@ -61,14 +61,18 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 # needs IMDB Data to filter out names/movies (may need database for this). Knowledge Base
 # "X won Y" needs to find a binding list where X is a movie and Y is an award
 # Needs to find a way to combine first name entries and full name entries
-
+sentiments = {}
 def get_hosts(year, data, actors):
     names = {}
     processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text']]
     re_search = {}
+    counter = 0
     for tweet in processed_data:
+        print((counter / len(processed_data)) * 100)
         # text = TextBlob(tweet['text'])
-        text = tweet['text'].split(' ')
+        text = re.findall('[a-zA-Z0-9]+', tweet['text'])
+        # text = tweet['text'].split(' ')
+        split_sentence = TextBlob(' '.join(text))
         capitalized_words = []
         temp = ""
         for word in text:
@@ -88,15 +92,22 @@ def get_hosts(year, data, actors):
             # filtered_actors = re_search[noun]
             # for name in filtered_actors:
             #     names[name] = names.get(name, 0) + 1
-            if noun in actors:
+            if noun in names.keys() or noun in actors:
                 names[noun] = names.get(noun, 0) + 1
+                sentiments[noun] = sentiments.get(noun, 0) + split_sentence.sentences[0].polarity * split_sentence.sentences[0].subjectivity
+
+            n = list(names.keys())
+            for name in n[:10]:
+                if name.startswith(noun) and name != noun:
+                    if noun in names.keys():
+                        sentiments[noun] = sentiments.get(noun, 0) - split_sentence.sentences[0].polarity * \
+                                           split_sentence.sentences[0].subjectivity
+                    names[name] = names[name] + 1
             # if noun not in re_search.keys():
             #     re_search[noun] = heapq.nlargest(10, names, key=names.get)
             # n = re_search[noun]
-            n = list(names.keys())
-            for name in n[:10]:
-                if name.startswith(noun):
-                    names[name] = names[name] + 1
+        counter += 1
+
 
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
@@ -104,7 +115,9 @@ def get_hosts(year, data, actors):
 
 
 
-    names_sorted = sorted(names.items(), key=lambda x: x[1], reverse=True)
+    # names_sorted = sorted(names.items(), key=lambda x: x[1], reverse=True)
+    # sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
+    # sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
     hosts = heapq.nlargest(5, names, key=names.get)
     return hosts
 
@@ -154,6 +167,45 @@ def get_winner(year, data):
             processed_data.append(x)
 
     return winners
+
+def sentiment_analysis(year, data, actors, awards, titles):
+    sentiments = {}
+    counter = 0
+    for tweet in data:
+        print(counter/len(data) * 100)
+        tweettext = tweet['text'].replace('Best', '')
+        words = tweettext.split()
+        words = ' '.join([x for x in words if not x.startswith('@') and not x.startswith('#') and not x == 'RT'])
+        text = TextBlob(words)
+
+        # split_sentence = ' '.join(re.findall('[a-zA-Z0-9]+', words))
+
+        split_sentence = re.sub(r'[^A-Za-z0-9 \-]+', '', words)
+        text2 = TextBlob(split_sentence)
+        sentences = text.sentences
+        for sentence in text2.sentences:
+            if sentence.polarity == 0 or sentence.subjectivity == 0:
+                continue
+
+            split = sentence.split(' ')
+            capitalized_words = []
+            temp = ""
+            for word in split:
+                if len(word) > 0 and (word[0].isupper() or word == '-'):
+                    temp += " " + word
+                elif temp != "":
+                    capitalized_words.append(temp.lower()[1:])
+                    temp = ""
+            if temp != "":
+                capitalized_words.append(temp.lower()[1:])
+            for noun in capitalized_words:
+                if noun in sentiments.keys() or noun in actors or noun in titles:
+                    sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
+        counter += 1
+
+    print(sentiments)
+
+    return []
 
 
 def get_presenters(year, data, actors, awards):
@@ -335,11 +387,17 @@ def main():
     # preprocessed_data = [x for x in data if '#GoldenGlobes' in x['text'] or '#goldenglobes' in x['text']]
     download_corpora.main()
 
-    #hosts = get_hosts(2013, data, actors)
-    #print(hosts)
-    get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
+    hosts = get_hosts(2013, data, actors)
+
+    print(hosts)
+    # get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
     # get_winner(2013, data)
     # get_nominees(2013, data)
+    # sentiment_analysis(2013, data, actors, OFFICIAL_AWARDS_1315, titles)
+    sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
+    sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
+    print(sentiments_sorted_descend)
+    print(sentiments_sorted_ascend)
     '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
