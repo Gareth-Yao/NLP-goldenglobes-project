@@ -9,6 +9,7 @@ import gzip
 import re
 import Levenshtein as lev
 import spacy
+from fuzzywuzzy import fuzz
 from collections import Counter
 import nltk
 
@@ -450,7 +451,7 @@ def get_winner(year, data, actors, actresses, directors, titles):
     sensitive_words.append('of')
     names = {}
     winners = {}
-    processed_data = [x for x in data if 'hope' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and
+    processed_data = [x for x in data if 'hop' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and
                       ('goes to' in x['text'] or 'wins' in x['text'].split() or 'won' in x['text'].split() or 'awarded' in x['text'].split() or 'receives' in x['text'].lower())]
     for tweet in processed_data:
         if 'cecil b. demille' in tweet['text'].lower():
@@ -478,7 +479,7 @@ def get_winner(year, data, actors, actresses, directors, titles):
                     addedSpace = ''.join([(' ' + x) if x.isupper() else x for x in word])[1:]
                     capitalized_words.append(addedSpace.lower())
                     checkHashtag = False
-                elif len(word) > 0 and (word[0].isupper() or word == '-'):
+                elif len(word) > 0 and (word[0].isupper() or word == '-' or word == ','):
                     temp += " " + word
                 elif len(word) > 0 and word == ',':
                     continue
@@ -499,20 +500,18 @@ def get_winner(year, data, actors, actresses, directors, titles):
                     print()
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
-                awards[noun.lower()] = 50
+                awards[noun.lower()] = 500
 
         if len(awards.keys()) == 0:
             for noun in capitalized_words:
-                if 'life of pi' in noun:
-                    print()
                 if 'actor' in noun or 'actress' in noun:
                     noun = 'performance ' + noun
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
-                if 'best director' in noun:
-                    print('xxx')
 
-                possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' '))) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.65]
+
+                # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
 
                 for award in possible_awards:
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
