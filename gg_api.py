@@ -451,9 +451,10 @@ def get_winner(year, data, actors, actresses, directors, titles):
     names = {}
     winners = {}
     processed_data = [x for x in data if 'hope' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and
-                      ('goes to' in x['text'] or 'wins' in x['text'].split() or 'won' in x['text'].split() or 'awarded' in x['text'].split())]
+                      ('goes to' in x['text'] or 'wins' in x['text'].split() or 'won' in x['text'].split() or 'awarded' in x['text'].split() or 'receives' in x['text'].lower())]
     for tweet in processed_data:
-
+        if 'cecil b. demille' in tweet['text'].lower():
+            print('xxx')
         words = tweet['text'].split()
         words = ' '.join([x.capitalize() if x.lower() in sensitive_words else x for x in words if '@' not in x and not x == 'RT' and '#GoldenGlobe' not in x and '#goldenglobe' not in x and x != 'or'])
         words = re.compile(re.escape('movie'),re.IGNORECASE).sub('Motion Picture', words)
@@ -479,6 +480,8 @@ def get_winner(year, data, actors, actresses, directors, titles):
                     checkHashtag = False
                 elif len(word) > 0 and (word[0].isupper() or word == '-'):
                     temp += " " + word
+                elif len(word) > 0 and word == ',':
+                    continue
                 elif temp != "":
                     capitalized_words.append(temp.lower()[1:])
                     temp = ""
@@ -496,7 +499,7 @@ def get_winner(year, data, actors, actresses, directors, titles):
                     print()
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
-                awards[noun.lower()] = 20
+                awards[noun.lower()] = 50
 
         if len(awards.keys()) == 0:
             for noun in capitalized_words:
@@ -508,7 +511,9 @@ def get_winner(year, data, actors, actresses, directors, titles):
                     noun = noun.replace('supporting', 'in a supporting role')
                 if 'best director' in noun:
                     print('xxx')
-                possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' '))) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.6]
+
+                possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' '))) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.65]
+
                 for award in possible_awards:
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
 
@@ -521,26 +526,53 @@ def get_winner(year, data, actors, actresses, directors, titles):
                 if 'life of pi' in noun:
                     print()
                 for award in awards.keys():
+                    temp = names[award]
                     if 'actor' in award:
                         if noun in actors:
-                            temp = names[award]
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
                     elif 'actress' in award:
                         if noun in actresses:
-                            temp = names[award]
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
                     elif 'director' in award:
                         if noun in directors:
-                            temp = names[award]
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                    else:
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+                    elif 'film' in award or 'motion picture' in award or 'series' in award:
                         if noun in titles.keys():
-                            temp = names[award]
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+                    else:
+                        if noun in directors or noun in titles.keys():
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+
 
 
 
@@ -797,10 +829,10 @@ def main():
     #hosts = get_hosts(2013, data, actors)
 
     #print(hosts)
-    # get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
-    # get_winner(2013, data)
-    # get_nominees(2013, data)
-    # sentiment_analysis(2013, data, actors, OFFICIAL_AWARDS_1315, titles)
+    #     # get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
+    #     # get_winner(2013, data)
+    #     # get_nominees(2013, data)
+    #     # sentiment_analysis(2013, data, actors, OFFICIAL_AWARDS_1315, titles)
     #sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
     #sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
     #print(sentiments_sorted_descend)
