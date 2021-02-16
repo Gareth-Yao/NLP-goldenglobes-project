@@ -669,62 +669,52 @@ def get_presenters(year, data, directors, awards):
                     ppl.append(tokens[i])
             i+=1
         return ppl
-    for tweet in data:
-        f = tweet['text']
-        if 'lucyliu' in f:
-            print(f)
-    return
-    # presenters, proc_data, award_names, proc_awards = {}, [], {}, []
-    # keywords = ['presenter','present','presents','presenters','presented']
-    # award_words = ['best', ' ', 'performance', '', 'award']
-    # nlp = spacy.load("en_core_web_sm")
-    # all_stopwords = nlp.Defaults.stop_words
-    # # look for keywords, remove punctuation, make lowercase
-    # for tweet_obj in data:
-    #     tweet = re.sub(r'[^\w\s]','', tweet_obj['text']).lower()
-    #     if any(word in tweet for word in keywords):
-    #         if not 'not present' in tweet and not 'represent' in tweet:
-    #             proc_data.append(tweet)
-    # # process award names to make easier to match
-    # for award in awards:
-    #     og_award = award
-    #     award = re.sub(r'[^\w\s]','', award).lower()
-    #     award_tokens = award.split(' ')
-    #     award_tokens = [word for word in award_tokens if not word in award_words and not word in all_stopwords]
-    #     if 'television' in award_tokens:
-    #         award_tokens.append('tv')
-    #     if 'picture' in award_tokens:
-    #         award_tokens.append('film')
-    #         award_tokens.append('movie')
-    #     award_names.update({str(award_tokens): og_award}) # maps to real award name used later for formatting
-    #     proc_awards.append(award_tokens)
-    #     presenters.update({og_award: []})
-    # no_words = ['rt']
-    # no_words.extend(all_stopwords)
-    # no_words.extend(award_words)
-    # no_words.extend(keywords)
-    # for lst in proc_awards:
-    #     no_words.extend(lst)
-    # # find award and ppl in processed tweets
-    # for tweet in proc_data:
-    #     tweet_tokens = [word for word in tweet.split(' ') if not word in ['', ' ']]  
-    #     correct_award = find_award(tweet_tokens, proc_awards)
-    #     if correct_award is not None:
-    #         ppl = find_ppl(tweet_tokens, directors, no_words)
-    #         real_name = award_names[str(correct_award)]
-    #         presenters[real_name].extend(ppl)
-    # for award in awards:
-    #     count = Counter(presenters[award])
-    #     num_pres = 1 if award == 'cecil b. demille award' else 2
-    #     pre = sorted(count.items(), key=lambda x:x[1], reverse=True)[:num_pres]
-    #     ar = [person[0] for person in pre] 
-    #     presenters.update({award: ar})
-    # print(presenters)
-    # num = 0
-    # for key in presenters:
-    #     num += len(presenters[key])
-    # print(num)
-    # return presenters
+    presenters, proc_data, award_names, proc_awards = {}, [], {}, []
+    keywords = ['presenter','present','presents','presenters','presented']
+    award_words = ['best', ' ', 'performance', '', 'award']
+    nlp = spacy.load("en_core_web_sm")
+    all_stopwords = nlp.Defaults.stop_words
+    # look for keywords, remove punctuation, make lowercase
+    for tweet_obj in data:
+        tweet = re.sub(r'[^\w\s]','', tweet_obj['text']).lower()
+        if any(word in tweet for word in keywords):
+            if not 'not present' in tweet and not 'represent' in tweet:
+                proc_data.append(tweet)
+    # process award names to make easier to match
+    for award in awards:
+        og_award = award
+        award = re.sub(r'[^\w\s]','', award).lower()
+        award_tokens = award.split(' ')
+        award_tokens = [word for word in award_tokens if not word in award_words and not word in all_stopwords]
+        if 'television' in award_tokens:
+            award_tokens.append('tv')
+        if 'picture' in award_tokens:
+            award_tokens.append('film')
+            award_tokens.append('movie')
+        award_names.update({str(award_tokens): og_award}) # maps to real award name used later for formatting
+        proc_awards.append(award_tokens)
+        presenters.update({og_award: []})
+    no_words = ['rt']
+    no_words.extend(all_stopwords)
+    no_words.extend(award_words)
+    no_words.extend(keywords)
+    for lst in proc_awards:
+        no_words.extend(lst)
+    # find award and ppl in processed tweets
+    for tweet in proc_data:
+        tweet_tokens = [word for word in tweet.split(' ') if not word in ['', ' ']]  
+        correct_award = find_award(tweet_tokens, proc_awards)
+        if correct_award is not None:
+            ppl = find_ppl(tweet_tokens, directors, no_words)
+            real_name = award_names[str(correct_award)]
+            presenters[real_name].extend(ppl)
+    for award in awards:
+        count = Counter(presenters[award])
+        num_pres = 1 if award == 'cecil b. demille award' else 2
+        pre = sorted(count.items(), key=lambda x:x[1], reverse=True)[:num_pres]
+        ar = [person[0] for person in pre] 
+        presenters.update({award: ar})
+    return presenters
 
 
 def pre_ceremony(year):
