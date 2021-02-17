@@ -7,7 +7,7 @@ import heapq
 from urllib import request
 import gzip
 import re
-# import Levenshtein as lev
+import Levenshtein as lev
 import spacy
 from fuzzywuzzy import fuzz
 from collections import Counter
@@ -228,7 +228,7 @@ fluff = ["a", "about", "above", "after", "again", "against", "ain", "all", "am",
 # "X won Y" needs to find a binding list where X is a movie and Y is an award
 # Needs to find a way to combine first name entries and full name entries
 sentiments = {}
-def get_hosts(year, data, actors):
+def get_hosts(year, data, directors):
     names = {}
     processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text']]
     re_search = {}
@@ -258,7 +258,7 @@ def get_hosts(year, data, actors):
             # filtered_actors = re_search[noun]
             # for name in filtered_actors:
             #     names[name] = names.get(name, 0) + 1
-            if noun in names.keys() or noun in actors:
+            if noun in names.keys() or noun in directors:
                 names[noun] = names.get(noun, 0) + 1
                 sentiments[noun] = sentiments.get(noun, 0) + split_sentence.sentences[0].polarity * split_sentence.sentences[0].subjectivity
 
@@ -470,13 +470,11 @@ def get_nominees(year, data, actors, actresses, directors, titles):
 
             if temp != "":
                 capitalized_words.append(temp.lower()[1:])
-            capitalized_words = list(dict.fromkeys(capitalized_words))
+        capitalized_words = list(dict.fromkeys(capitalized_words))
 
         awards = {}
         for noun in capitalized_words:
             if noun.lower() in OFFICIAL_AWARDS_1315:
-                if 'best original score' in noun.lower():
-                    print()
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
                 awards[noun.lower()] = 500
@@ -487,8 +485,6 @@ def get_nominees(year, data, actors, actresses, directors, titles):
                     noun = 'performance ' + noun
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
-
-
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
                 possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
                 for award in possible_awards:
@@ -500,8 +496,6 @@ def get_nominees(year, data, actors, actresses, directors, titles):
 
         if len(awards.keys()) != 0:
             for noun in capitalized_words:
-                if 'life of pi' in noun:
-                    print()
                 for award in awards.keys():
                     temp = names[award]
                     if 'actor' in award:
@@ -565,9 +559,10 @@ def get_winner(year, data, actors, actresses, directors, titles):
     winners = {}
     processed_data = [x for x in data if 'hop' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and
                       ('goes to' in x['text'] or 'wins' in x['text'].split() or 'won' in x['text'].split() or 'awarded' in x['text'].split() or 'receives' in x['text'].lower())]
+    counter = 0
     for tweet in processed_data:
-        if 'cecil b. demille' in tweet['text'].lower():
-            print('xxx')
+        counter += 1
+        print((counter / len(processed_data)) * 100)
         words = tweet['text'].split()
         words = ' '.join([x.capitalize() if x.lower() in sensitive_words else x for x in words if '@' not in x and not x == 'RT' and '#GoldenGlobe' not in x and '#goldenglobe' not in x and x != 'or'])
         words = re.compile(re.escape('movie'),re.IGNORECASE).sub('Motion Picture', words)
@@ -603,9 +598,12 @@ def get_winner(year, data, actors, actresses, directors, titles):
 
             if temp != "":
                 capitalized_words.append(temp.lower()[1:])
-            capitalized_words = list(dict.fromkeys(capitalized_words))
+        capitalized_words = list(dict.fromkeys(capitalized_words))
 
         awards = {}
+
+        # text = tweet['text'].split(' ')
+        sentence_sentiment = TextBlob(' '.join(re.findall('[a-zA-Z0-9]+', tweet['text'])))
         for noun in capitalized_words:
             if noun.lower() in OFFICIAL_AWARDS_1315:
                 if 'best original score' in noun.lower():
@@ -613,6 +611,9 @@ def get_winner(year, data, actors, actresses, directors, titles):
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
                 awards[noun.lower()] = 500
+            if noun in directors:
+                sentiments[noun] = sentiments.get(noun, 0) + sentence_sentiment.sentences[0].polarity * \
+                                   sentence_sentiment.sentences[0].subjectivity
 
         if len(awards.keys()) == 0:
             for noun in capitalized_words:
@@ -692,7 +693,6 @@ def get_winner(year, data, actors, actresses, directors, titles):
         # tokens = text.tokens
         # if 'wins' in tokens or 'won' in tokens or 'goes to' in tokens or 'awarded' in tokens:
         #     processed_data.append(x)
-    print(winners)
     return winners
 
 def sentiment_analysis(year, data, actors, awards, titles):
@@ -843,8 +843,6 @@ def pre_ceremony(year):
     actors_zipped.readline()
     for line in actors_zipped:
         actor_info = line.decode('UTF-8').split('\t')
-        if actor_info[1] == 'Ben Affleck':
-            print(actor_info)
         if actor_info[2] == '\\N':
             continue
         if 'actor' in actor_info[4]:
@@ -904,7 +902,7 @@ def pre_ceremony(year):
 
 
 def main():
-    pre_ceremony(2013)
+    # pre_ceremony(2013)
     with open(sys.argv[1]) as f:
         data = json.load(f)
     
@@ -919,24 +917,26 @@ def main():
     # May be unnecessary
     # preprocessed_data = [x for x in data if '#GoldenGlobes' in x['text'] or '#goldenglobes' in x['text']]
     download_corpora.main()
-    get_presenters(2014, data, directors, OFFICIAL_AWARDS_1315);
+    # get_presenters(2014, data, directors, OFFICIAL_AWARDS_1315)
     # awards = get_awards(2013, data)
 
-    # get_winner(2013, data, actors, actresses, directors, titles)
-    get_nominees(2013, data, actors, actresses, directors, titles)
+    winners = get_winner(2013, data, actors, actresses, directors, titles)
+    # get_nominees(2013, data, actors, actresses, directors, titles)
 
 
-    #hosts = get_hosts(2013, data, actors)
+    hosts = get_hosts(2013, data, directors)
+
+
 
     #print(hosts)
     #     # get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
     #     # get_winner(2013, data)
     #     # get_nominees(2013, data)
     #     # sentiment_analysis(2013, data, actors, OFFICIAL_AWARDS_1315, titles)
-    #sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
-    #sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
-    #print(sentiments_sorted_descend)
-    #print(sentiments_sorted_ascend)
+    sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
+    sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
+    print(sentiments_sorted_descend)
+    print(sentiments_sorted_ascend)
     '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
