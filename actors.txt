@@ -923,6 +923,7 @@ tom stoppard
 peter stormare
 george takei
 jeffrey tambor
+andrei tarkovsky
 robert taylor
 rod taylor
 henry thomas
@@ -3106,6 +3107,7 @@ halit akçatepe
 sitki akçatepe
 engin akcelik
 albert akchurin
+mehmet akdil
 jûzaburô akechi
 jeremy akerman
 marc akerstream
@@ -7206,7 +7208,6 @@ leedham bantock
 buju banton
 christoph bantzer
 claus bantzer
-jozef dodo banyak
 radu bânzaru
 dai bao
 ivan baptie
@@ -8933,6 +8934,7 @@ tim bell
 tobin bell
 tom bell
 tony bell
+vinnie bell
 william bell
 zack bell
 ulises bella
@@ -14677,7 +14679,7 @@ earle d bunn
 dewey bunnell
 john bunnell
 paul bunnell
-david bunners
+david c bunners
 george bunny
 john bunny
 bert bunschoten
@@ -15681,6 +15683,7 @@ ali cagaloglu
 steven cagan
 engin çaglar
 necdet çaglar
+osman çaglar
 james cagnard
 james cagney jr
 tim cagney
@@ -15759,6 +15762,7 @@ boris caksiran
 manolo cal
 joseph michael cala
 julian bane
+paolo calabresi
 tony calabretta
 neill calabro
 thomas calabro
@@ -19734,7 +19738,7 @@ jessie cody
 joe cody
 lew cody
 richard cody
-william f cody
+buffalo bill cody
 barry coe
 george coe
 john coe
@@ -22600,7 +22604,7 @@ walter da pozzo
 louis da pron
 eraldo da roma
 pepe da rosa
-ademar da silva
+adhemar ferreira da silva
 fernando ramos da silva
 henry da silva
 howard da silva
@@ -25004,6 +25008,7 @@ don depollo
 harry depp
 hans deppe
 hanspeter deppe
+rolf liccini
 xavier depraz
 danny deprez
 wil van der meer
@@ -35658,7 +35663,6 @@ jakob gimpel
 joseph gimpel
 kåge gimtell
 daniel giménez cacho
-antonio giménez rico
 xavi giménez
 jimmy giménezarnau
 bican günalan
@@ -36174,6 +36178,7 @@ martin golar
 wieslaw golas
 wlodzimierz golaszewski
 andrew gold
+ari gold
 elon gold
 eric gold
 gary gold
@@ -41033,6 +41038,7 @@ tanner hayes
 ted hayes
 teddy hayes
 tom hayes
+vister hayes
 william martin hayes
 william t hayes
 youda hayes
@@ -42896,6 +42902,7 @@ hermes hodolides
 jan hodr
 zdenek hodr
 donald hodson
+jimmy hodson
 steve hodson
 hajrudin hodzic
 hunt hoe
@@ -43511,7 +43518,6 @@ david hooks
 kevin hooks
 robert hooks
 lance hool
-shannon hoon
 jeremy hoop
 wyn hoop
 wally hooper jr
@@ -45119,6 +45125,7 @@ eirik ildahl
 robert iler
 jon iles
 léo ilial
+sanja ilic
 branko ilic
 dimitrije ilic
 dragoslav ilic
@@ -45406,6 +45413,7 @@ ian ireland
 john ireland
 kenny ireland
 richard ireson
+olim irgashev
 cahit irgat
 masato irie
 luis iriondo
@@ -45625,6 +45633,7 @@ ervin õunapuu
 antonino iuorio
 marcel iures
 brane ivanc
+johann ivancits
 ivica ivanec
 zeljko ivanek
 eran ivanir
@@ -46596,6 +46605,7 @@ ernest c jennings
 humphrey jennings
 junero jennings
 ken jennings
+nolan jennings
 paul jennings
 rory jennings
 se jennings
@@ -51726,6 +51736,7 @@ vladimir korovin
 georg korpas
 lauri korpela
 tommi korpela
+norman korpi
 giovanni korporaal
 harry korris
 david kors
@@ -54554,6 +54565,7 @@ christiaan laurentius
 cor laurentius
 zenon laurentowski
 john laurenz
+silvio laurenzi
 marius laurey
 hannu lauri
 dan lauria
@@ -64871,6 +64883,7 @@ vojislav miric
 ernie mirich
 alan mirikitani
 michael mirisch
+karim mirkhadiev
 abraham mirkin
 boris mirkovic
 mario mirkovic
@@ -67458,6 +67471,7 @@ eric métayer
 mévisto
 tomasz medrzak
 vladimír míka
+zdenek míka
 václav mírovský
 istván móczár
 rolf möbius
@@ -72881,7 +72895,6 @@ roald pay
 gilles payant
 lee payant
 johnny paycheck
-alain payet
 albert payette
 steve paymer
 graham payn
@@ -73814,6 +73827,7 @@ mogens scott petersen
 mogens viggo petersen
 pat petersen
 paul petersen
+peter petersen
 peter petersen
 poul petersen
 robert storm petersen
@@ -75645,6 +75659,7 @@ jason powell
 jody powell
 joe powell
 joynson powell
+kevin powell
 lance powell
 larry powell
 lee powell
@@ -78113,6 +78128,7 @@ fritz reiff
 rudolf reiff
 timothy reifsnyder
 carlos reigplaza
+alf reigel
 francisco reiguera
 jimmy snuka
 rob van reijn
@@ -78714,6 +78730,7 @@ ricet barrier
 james rich jr
 adam rich
 allan rich
+bernard rich
 buddy rich
 charlie rich
 christopher rich
@@ -78791,6 +78808,7 @@ nelson richards
 paul richards
 paul richards
 percy richards
+robert richards
 stan richards
 terry richards
 wolf richards
@@ -81643,6 +81661,7 @@ tommy ryan
 tommy ryan
 will ryan
 eldar ryazanov
+valeriy ryazanov
 aleksandr ryazantsev
 robert ryberg
 aleksandr rybin
@@ -92025,6 +92044,7 @@ arthur tavares
 joão tavares
 napoleão tavares
 dino tavarone
+revaz tavartkiladze
 alberto tavazzi
 finn tavbe
 ronald tavel
@@ -92153,6 +92173,7 @@ shaw taylor
 stanley taylor
 steve taylor
 tate taylor
+teddy taylor
 terry taylor
 theodore taylor
 vaughn taylor
@@ -95503,6 +95524,7 @@ gustáv valach
 charles dudoignonvalade
 carlos valadez
 enrique valadez
+biagio gambini
 jece valadão
 maris valainis
 grégory valais
@@ -102879,6 +102901,7 @@ dmitriy zaytsev
 denis zajtsev
 vadim zajtsev
 vladimir zaytsev
+vyacheslav zaytsev
 avenir zak
 cezary zak
 mark zak
@@ -105100,7 +105123,7 @@ christopher t german
 stevan momcilovic
 ronny mosuse
 jack mountford
-tun fei mou
+tunfei mou
 fred naumetz
 amaury nolasco
 geoffrey notkin
@@ -105302,6 +105325,7 @@ tadej troha
 kôhei tsuzaki
 peter van de veire
 ivan lazarevic
+otto schmidt
 josé verstappen
 slaven vidakovic
 phil vischer
@@ -105767,6 +105791,7 @@ keiji shiraki
 gustavo sanchez
 artemiy spiridonov
 george eisenhauer
+paul reynolds
 dick taylor
 mose allison
 david ballog
@@ -109263,6 +109288,7 @@ danny williams
 beau hodges
 rick hutton
 shigeki ishii
+dominic travaloina
 david janer
 zach johnson
 casey keegan
@@ -109854,7 +109880,7 @@ hevia
 vadim borodin
 johnny holliday
 ohji hiroi
-jeremy j sykes
+jj sykes
 hyeon ju
 cris judd
 tom kalland
@@ -110879,6 +110905,7 @@ helmut zhuber
 randolph rowe
 al dean
 b374k
+werner reinke
 campbell logan
 igor mirkovic
 robert schindel
@@ -112459,6 +112486,7 @@ peter wilkinson
 monte attel
 arnaldo baptista
 miguel moisés gómez
+alejandro pelayo
 kadda sheekoff
 tony bellotto
 jef van den berg
@@ -113104,7 +113132,6 @@ constantine ganosis
 eijaz khan
 todd phillips
 saeed abdulghani
-alejandro pelayo
 miroslav adamec
 alex affolter
 zygmunt apostol
@@ -114534,7 +114561,7 @@ tristan seagal
 chris white
 rené adámek
 morteza ahmadi
-aramais vartan yousefians
+armais vartani hovsepian
 fernando puig
 kemal bekir
 kurt bergeron
@@ -115944,6 +115971,7 @@ franco simone
 redd stewart
 foster williams
 josh wise
+pooria ghohroodi
 mitch duncan
 yuriy afanasyev
 kevin mcnally
@@ -116844,7 +116872,6 @@ marko lehtosalo
 dmitriy ovchinnikov
 aleksandr potapov
 fumio matsuoka
-sayeem hasan
 dwight mead
 alexander mitterer
 hiromu takahashi
@@ -117113,6 +117140,7 @@ christopher goddard
 ireneusz gregorczyk
 tommy nelson reynolds
 justin guarini
+marvin josé dos santos ramos
 tufan aydin ercan
 matthew heffner
 herbert johnson
@@ -117236,6 +117264,7 @@ jan vísek
 robert wabich
 jason spence
 luis de tavira
+balaji mishra
 joe hampson
 matteo albano
 pavel stingl
@@ -117300,6 +117329,7 @@ jacob arild binzer
 jesper binzer
 muzaffer birtan
 kristen bjørnkjær
+aleksandr shishkin
 ralph brewster
 oriol broggi
 edi brokoli
@@ -118895,7 +118925,6 @@ andre edwards
 jimmy greaves
 quim gutiérrez
 david henrie
-jimmy hodson
 gerhard jentsch
 adam koman
 fabian krüger
@@ -119337,6 +119366,7 @@ jeanpierre martins
 greg mathis
 matthew morrison
 bert murphy
+carlo muñoz
 filippo nardi
 tony oushan
 maurice ripke
@@ -120053,6 +120083,7 @@ carl randolph
 april boy regino
 tugan rezhametov
 jolo revilla
+aleksandr rezalin
 kjell kristian rike
 sándor román
 emerson rondón
@@ -123276,6 +123307,7 @@ david byron hudson
 kevin cadogan
 el camborio
 neal casal
+toni cetinski
 marek chowaniec
 armstead christian
 erazm ciolek
@@ -126843,6 +126875,7 @@ oleg lopukhov
 beau manley
 joseph markovitch
 stephen oneil martin
+a maspyuryants
 nicola mastroberardino
 julio milostich
 tom mintz
@@ -127644,7 +127677,6 @@ cm punk
 josé diogo quintela
 luis alberto ramírez
 andré reis
-riku riihilahti
 caleb roehrig
 gian rupf
 shunsuke sakuya
@@ -128137,6 +128169,7 @@ oliver holler
 aleksandr baranov
 david dragun
 tom brady
+roberto infascelli
 marco bianchi
 martin christopher
 morgan davies
@@ -129159,6 +129192,7 @@ don scales
 chris sullivan
 ron yavnieli
 kim lee
+lindsay walker
 andy sipes
 john klein
 charles irwin
@@ -133625,7 +133659,6 @@ alexander weise
 chandler williams
 roman arabia
 yukman wong
-jack yabsley
 hsingshu yen
 chang yun
 daniel zillmann
@@ -138493,7 +138526,7 @@ mike muldoon
 eric braun
 sonny hill
 joey castillo
-tiki
+tiki ghosn
 nick diaz
 mike goldberg
 andrei arlovski
@@ -139109,7 +139142,7 @@ william hagedornrasmussen
 joey fechner
 anthony fedorov
 david fairhurst
-david levi
+david tandy
 matija klukovic
 rolf hansen
 paul jason seguin
@@ -141895,6 +141928,7 @@ burak karaman
 georges trois fontaines
 suicidal tendencies
 billy snow
+safi yazdanian
 jon gaunt
 jojo garza
 igor biscan
@@ -142135,7 +142169,7 @@ jason kingsley
 spencer hawken
 alexander fiskeharrison
 alan rackley
-michael russell
+major mike
 dave hoffman
 selami sahin
 wit dziki
@@ -143856,6 +143890,7 @@ barry jones
 jeff dawson
 michael e burgess
 patrick tan
+duncan heath
 milan kovacevic
 jedediah shoemaker
 ian duffy
@@ -145276,6 +145311,7 @@ chuck cecil
 joseph zita
 levi chambers
 gabriel morales
+zach randolph
 sam marlowe
 horacio segal
 vince young
@@ -146231,7 +146267,7 @@ jasen salvatore
 kevin borg
 richard findlay
 josué reyes
-mihkel robam
+robam mihkel
 jeetendr sehdev
 rick dempsey
 giordano bruno guerri
@@ -150519,6 +150555,7 @@ aleksandr karpilovskiy
 brian c baker
 otto busse
 daryn beasley
+yavuz seker
 josh jones
 josh roseberry
 andrey golubev
@@ -150602,6 +150639,7 @@ kevin klee
 daniel guyton
 yuriy osipov
 manuel laybor
+mikhail tyrtysh
 wojciech kaczanowski
 jim harbaugh
 patrick edgar
@@ -150636,7 +150674,7 @@ richard patterson
 dirk talága
 patrick abozen
 mitch hewer
-jolan jancso
+jolán jancsó
 álex adróver
 amar agha
 rodrigo pessoa
@@ -152616,6 +152654,7 @@ bessie major
 bryan magee
 clay matthews
 ian bernardo
+seth murray
 justin karas
 louie vergara
 kirk matthews
@@ -153758,6 +153797,7 @@ dylan scheller
 steven zax
 jan korevaar
 stefano mondini
+heinrich hub
 bohdan sobiesiak
 gábor németh
 tom smart
@@ -154969,6 +155009,7 @@ vurgun adalayi
 tyrone karius
 glade cornelius
 tamás fellegi
+recep biçer
 mario a figueroa
 jonas remmel
 sean hoagland
@@ -156177,6 +156218,7 @@ pavel veselý
 james duval
 thomas ngijol
 karol adwentowicz
+oleg valkman
 kelly knievel
 freeway ricky ross
 domenic miklós endré torday
@@ -160523,6 +160565,7 @@ bob williams
 james pobiega
 alberich
 felix von sassen
+mayak karimov
 michael kranz
 paco blázquez
 tim shaw
@@ -161844,6 +161887,7 @@ marcus gray
 alex revan
 camden palmisano
 ethynn tanner cerney
+enid reyes
 barry marino
 miles lawson
 david salles
@@ -170480,7 +170524,6 @@ nesti gee
 louis arène
 ainhoa jáuregi
 fabrice colson
-kenneth bray
 jakob granqvist
 carlos del valle
 karim kamel
@@ -170641,7 +170684,6 @@ hyun woo
 pantxo nieto
 phelan porteous
 tobias kluckert
-gregg hurwitz
 petón
 richard cline
 francisco andrade
@@ -173964,7 +174006,7 @@ london lombana
 seanmichael touchie
 alexis sánchez
 vaughn dimoff
-joda pyle
+eugenius cassidy
 geert gielissen
 lernik harutyunyan
 vincent g perry
@@ -176025,7 +176067,6 @@ kyle david pierce
 spencer rocco lofranco
 michael schulte
 max giesinger
-aleksandre koberidze
 luca campanile
 francois dallaire
 beau cassidy
@@ -176117,6 +176158,7 @@ tom latimer
 koray gelisen
 yashmith
 hans jörg bachmeier
+hb waring
 jasper provijn
 rory j saper
 james vollmar
@@ -177700,6 +177742,7 @@ jaron frand
 ravi belagere
 raoul migliosi
 joe massa
+jason strudwick
 willoughby pyle
 dustin aremburg
 andrew martin
@@ -178107,6 +178150,7 @@ william long
 murphy hayes
 paul janke
 lindsay rhoades
+ao glisson
 joscha thelosen
 michael valinsky
 emin saylan
@@ -179516,6 +179560,7 @@ petri aulin
 olivier giroud
 chihtian shih
 evan yo
+jacek knap
 bartosz szpak
 aman wadhan
 jme
@@ -180191,6 +180236,7 @@ victor uzun
 marcelo
 anatoli vasilyev
 juan aleman
+daniel reyes
 donald hylan
 matija matovic mondi
 matt simms
@@ -180459,6 +180505,7 @@ carlos alfredo lopez
 mackenze mcaleer
 edouard valette
 michael seragon
+stephanus maré
 alfred holtzer
 art lynch
 nelson martinez
@@ -181063,7 +181110,6 @@ frantisek bohdal
 miroslav hirt
 loren smith
 carlos a domínguez
-andy van veen
 marcus johansson
 jirí horký
 nuno preto
@@ -183813,6 +183859,7 @@ mariusz brzezinski
 ryszard choinski
 alec lardarello
 jonathan whitesell
+mark shikhov
 sergey muravyov
 alex viaggio
 cameron macleod
@@ -184402,7 +184449,7 @@ nino porzio
 nikolay savosin
 igor ilin
 jerzy wozniak
-dan robinson
+dan robins
 sergey bondarchuk
 vitaliy raskalov
 nicholas moody
@@ -184680,6 +184727,7 @@ artyom vyalov
 ermete realacci
 ken costantino
 ningjiang zhang
+stephen schlaack
 andrius siusa
 manfred winkelhock
 victor wetter
@@ -184977,6 +185025,7 @@ tomas vaisieta
 leonardo schlereth
 andrew morris
 brett c wagner
+lee priest
 sami aydi
 howard rose
 kanat hepari
@@ -187969,6 +188018,7 @@ liam hefferman
 ben richard joseph gordon
 panagiotis chatziathanasiou
 christon gray
+aleksandr karev
 gerhard fitzky
 kyle crawford
 harper cullen
@@ -188385,7 +188435,6 @@ kamel anwar
 simon stabauer
 dusan rankovic
 smiljana nedic
-hashim azmi
 valery belyanin
 ersin arici
 eddy burnett
@@ -188553,6 +188602,7 @@ mike anthony
 raaj vishwakarma
 daniel suarez
 erik jones
+cole custer
 rocky rupkumar patra
 rajkumar patra
 vladimir ivashchenko
@@ -189372,6 +189422,7 @@ claudio taddei
 noah paul
 luca di martino
 isac mukul barslev
+henry e simmon
 bartosz bulawa
 adrian gawlik
 mateusz burdach
@@ -189690,6 +189741,7 @@ aleksei simkovich
 edward chen
 alex cowgill
 james pilkington
+jonathan lucas feeneybrown
 matthew divello
 matthew iwancio
 max hauser
@@ -190048,6 +190100,7 @@ patrick sass
 jack baca
 evan m dawson
 jens triebel
+felix krol
 sebastian graf
 zdenek pulec
 charles talley
@@ -190188,6 +190241,7 @@ sebastian dziubiel
 neco ibañez
 trent peek
 aydin korkmaz
+pierre bourque
 rodrigo pio
 german schrei
 attila beko
@@ -190238,6 +190292,7 @@ mikhail fedorchenko
 john paul davies
 jose abraham robledo
 garrett golden
+domantas sabonis
 nathan vincenti
 oliver alexander
 terry ryan

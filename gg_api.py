@@ -7,7 +7,7 @@ import heapq
 from urllib import request
 import gzip
 import re
-import Levenshtein as lev
+# import Levenshtein as lev
 import spacy
 from fuzzywuzzy import fuzz
 from collections import Counter
@@ -420,27 +420,139 @@ def get_awards(year, data):
     return awards
 
 
-def get_nominees(year, data):
+def get_nominees(year, data, actors, actresses, directors, titles):
     '''Nominees is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change
     the name of this function or what it returns.'''
     # Your code here
-    nominees = []
+    nominees = {}
     names = {}
+    sensitive_words = ['supporting', 'actor','actress','of']
+    relevant_words = ['wish', 'hope', 'hoped', 'deserves', 'deserved', 'nominated', 'deserve', 'nominate', 'nominee', 'nominees', 'should']
     # processed_data = [x for x in data if 'best motion picture - drama' in x['text'] or 'Best Motion Picture - Drama' in x['text']]
-    processed_data = data
+    processed_data = []
+    for tweet_obj in data:
+        tweet = re.sub(r'[^\w\s]','', tweet_obj['text']).lower()
+        if any(word in tweet for word in relevant_words):
+            processed_data.append(tweet)
+    # processed_data = [x for x in data if 'wish' in x['text'].lower() or 'hope' in x['text'] or 'should\'ve' in x['text'] or
+    #                   ('hoped' in x['text'] or 'deserves' in x['text'].split() or 'deserved' in x['text'].split() or 'nominated' in x['text'].split() or 'nominee' in x['text'].lower())]
     for tweet in processed_data:
-        text = TextBlob(tweet['text'])
-        for noun in text.noun_phrases:
-            names[noun] = names.get(noun, 0) + 1
+        words = tweet.split()
+        words = ' '.join([x.capitalize() if x.lower() in sensitive_words else x for x in words if '@' not in x and not x == 'RT' and '#GoldenGlobe' not in x and '#goldenglobe' not in x and x != 'or'])
+        words = re.compile(re.escape('movie'),re.IGNORECASE).sub('Motion Picture', words)
+        words = re.compile(re.escape('tv'),re.IGNORECASE).sub('Television', words)
+        words = re.compile(re.escape('in a')).sub('In A', words)
 
-    '''Hosts is a list of one or more strings. Do NOT change the name
-    of this function or what it returns.'''
-    # Your code here
-    names_sorted = sorted(names.items(), key=lambda x: x[1], reverse=True)
-    hosts = heapq.nlargest(5, names, key=names.get)
+        words = re.compile(re.escape('miniseries'),re.IGNORECASE).sub('Mini-Series', words)
+        textb = TextBlob(words)
+        capitalized_words = []
+        for sentence in textb.sentences:
+            # split_sentence = re.sub(r'[^A-Za-z0-9#: \-]+', ' ', sentence.raw).split()
+            split_sentence = sentence.tokens
+            # split_sentence = words.split()
+            temp = ""
+            checkHashtag = False
+            for word in split_sentence:
+                if checkHashtag and len(word) > 0 and word[0].isupper():
+                    addedSpace = ''.join([(' ' + x) if x.isupper() else x for x in word])[1:]
+                    capitalized_words.append(addedSpace.lower())
+                    checkHashtag = False
+                elif len(word) > 0 and (word[0].isupper() or word == '-' or word == ','):
+                    temp += " " + word
+                elif len(word) > 0 and word == ',':
+                    continue
+                elif temp != "":
+                    capitalized_words.append(temp.lower()[1:])
+                    temp = ""
+                if word == '#':
+                    checkHashtag = True
+
+            if temp != "":
+                capitalized_words.append(temp.lower()[1:])
+            capitalized_words = list(dict.fromkeys(capitalized_words))
+
+        awards = {}
+        for noun in capitalized_words:
+            if noun.lower() in OFFICIAL_AWARDS_1315:
+                if 'best original score' in noun.lower():
+                    print()
+                if noun.lower() not in names.keys():
+                    names[noun.lower()] = dict()
+                awards[noun.lower()] = 500
+
+        if len(awards.keys()) == 0:
+            for noun in capitalized_words:
+                if 'actor' in noun or 'actress' in noun:
+                    noun = 'performance ' + noun
+                if 'supporting' in noun:
+                    noun = noun.replace('supporting', 'in a supporting role')
+
+
+                # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
+                for award in possible_awards:
+                    awards[award[0]] = awards.get(award[0], 0) + award[1]
+
+        for award in awards.keys():
+            if award.lower() not in names.keys():
+                names[award.lower()] = dict()
+
+        if len(awards.keys()) != 0:
+            for noun in capitalized_words:
+                if 'life of pi' in noun:
+                    print()
+                for award in awards.keys():
+                    temp = names[award]
+                    if 'actor' in award:
+                        if noun in actors:
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+                    elif 'actress' in award:
+                        if noun in actresses:
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+                    elif 'director' in award:
+                        if noun in directors:
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+                    elif 'film' in award or 'motion picture' in award or 'series' in award:
+                        if noun in titles.keys():
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+                    else:
+                        if noun in directors or noun in titles.keys():
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
+                        else:
+                            for tempkey in temp.keys():
+                                if noun.lower() in tempkey:
+                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                                    names[award] = temp
+    for award in names.keys():
+        nominees[award] = sorted(names[award].items(), key=lambda key : key[1])[-5:]
+    print(nominees)
     return nominees
-
 
 def get_winner(year, data, actors, actresses, directors, titles):
     '''Winners is a dictionary with the hard coded award
@@ -512,7 +624,6 @@ def get_winner(year, data, actors, actresses, directors, titles):
 
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
                 possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
-
                 for award in possible_awards:
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
 
@@ -793,9 +904,10 @@ def pre_ceremony(year):
 
 
 def main():
+    pre_ceremony(2013)
     with open(sys.argv[1]) as f:
         data = json.load(f)
-    # pre_ceremony(2013)
+    
     with open('titles.json', encoding='UTF-8') as f:
         titles = json.load(f)
     with open('actors.txt', 'r', encoding='UTF-8') as f:
@@ -809,7 +921,10 @@ def main():
     download_corpora.main()
     get_presenters(2014, data, directors, OFFICIAL_AWARDS_1315);
     # awards = get_awards(2013, data)
-    #get_winner(2013, data, actors, actresses, directors, titles)
+
+    # get_winner(2013, data, actors, actresses, directors, titles)
+    get_nominees(2013, data, actors, actresses, directors, titles)
+
 
     #hosts = get_hosts(2013, data, actors)
 
