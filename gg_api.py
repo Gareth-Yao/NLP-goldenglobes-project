@@ -7,7 +7,7 @@ import heapq
 from urllib import request
 import gzip
 import re
-import Levenshtein as lev
+# import Levenshtein as lev
 import spacy
 from os import path
 from fuzzywuzzy import fuzz
@@ -237,7 +237,7 @@ def get_nominees(year):
     all_stopwords = nlp.Defaults.stop_words
     all_stopwords.update(['motion picture', 'goldenglobe', 'goldenglobes', 'golden globes', 'golden globe', 'congrats', 'congratulations', 'hbo', 'tonight', 'television','showtime','definitely','yay', 'drama', 'certainly', 'musical', 'globes', 'yey'])
     sensitive_words = ['supporting', 'actor','actress','of']
-    relevant_words = ['wish', 'hope', 'hoped', 'deserves', 'deserved', 'nominated', 'deserve', 'nominate', 'nominee', 'nominees', 'should', 'pick', 'picked', 'picks', 'predict', 'predicted', 'predicts', 'think', 'thinks', 'goes to']
+    relevant_words = ['nominated', 'deserve', 'nominate', 'nominee', 'nominees', 'should', 'pick', 'picked', 'picks', 'predict', 'predicted', 'predicts', 'think', 'thinks', 'goes to']
     # processed_data = [x for x in data if 'best motion picture - drama' in x['text'] or 'Best Motion Picture - Drama' in x['text']]
     processed_data = []
     for tweet_obj in data:
@@ -246,6 +246,7 @@ def get_nominees(year):
             processed_data.append(tweet_obj)
     # processed_data = [x for x in data if 'wish' in x['text'].lower() or 'hope' in x['text'] or 'should\'ve' in x['text'] or
     #                   ('hoped' in x['text'] or 'deserves' in x['text'].split() or 'deserved' in x['text'].split() or 'nominated' in x['text'].split() or 'nominee' in x['text'].lower())]
+    counter = 0
     for tweet in processed_data:
         words = tweet['text'].split()
         words = ' '.join([x.capitalize() if x.lower() in sensitive_words else x for x in words if '@' not in x and not x == 'RT' and '#GoldenGlobe' not in x and '#goldenglobe' not in x and x != 'or'])
@@ -287,7 +288,11 @@ def get_nominees(year):
             if temp != "":
                 capitalized_words.append(temp.lower()[1:])
         capitalized_words = list(dict.fromkeys(capitalized_words))
-
+        if 'zero dark thirty' in capitalized_words:
+            counter += 1
+        # for noun in textb.noun_phrases:
+        #     if noun not in capitalized_words:
+        #         capitalized_words.append(noun)
         awards = {}
         award_phrases = []
         for noun in capitalized_words:
@@ -307,7 +312,7 @@ def get_nominees(year):
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in real_awards if fuzz.token_sort_ratio(noun.lower(), x) > 60]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in real_awards if fuzz.token_sort_ratio(noun.lower(), x) > 70]
                 for award in possible_awards:
                     award_phrases.append(temp)
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
@@ -358,6 +363,8 @@ def get_nominees(year):
                                     names[award] = temp
                     elif 'film' in award or 'motion picture' in award or 'series' in award:
                         if noun in titles:
+                            if noun == 'zero dark thirty':
+                                print("yes3")
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + 2 * awards[award]
                             names[award] = temp
                         elif noun not in all_stopwords and noun not in award_phrases and noun not in directors and noun.isalpha():
@@ -381,6 +388,7 @@ def get_nominees(year):
                                 if noun.lower() in tempkey:
                                     temp[tempkey] = temp.get(tempkey, 0) + awards[award]
                                     names[award] = temp
+    print(names['best motion picture - drama'])
     for award in names.keys():
         nominees[award] = sorted(names[award].items(), key=lambda key : key[1])[-5:]
         nominees[award] = [x[0] for x in nominees[award]]
@@ -798,43 +806,44 @@ def main(year):
         actual_award_names = OFFICIAL_AWARDS_1819
     hosts = get_hosts(year)
     #award_data = answer["award_data"]
-    awards = get_awards(year)
+    # awards = get_awards(year)
     nominees = get_nominees(year)
-    presenters = get_presenters(year)
-    winners = get_winner(year)
-    sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
-    sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
+    print(nominees)
+    # presenters = get_presenters(year)
+    # winners = get_winner(year)
+    # sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
+    # sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
     #print(sentiments_sorted_descend)
     #print(sentiments_sorted_ascend)
-    print("Host:", ', '.join([x.title() for x in hosts]))
-    output['Hosts'] = [x.title() for x in hosts]
-    for award in actual_award_names:
-        print("Award:", award.title())
-        temp = {}
-        print("Our Award Name:", max(awards, key= lambda k : fuzz.token_sort_ratio(award, k)).title())
-        print("Presenters:", ', '.join([x.title() for x in presenters[award]]))
-        temp['Presenters'] = [x.title() for x in presenters[award]]
-        if 'performance' or 'director' in award or 'best' not in award:
-            print("Nominees:", ', '.join([x.title() for x in nominees[award]]))
-        else:
-            print("Nominees:", ', '.join(['"' + x.title() + '"' for x in nominees[award]]))
-        temp['Nominees'] = [x.title() for x in nominees[award]]
-        #print("Winner:", winners[award].title())
-        if 'performance' or 'director' in award or 'best' not in award:
-            print("Winner:", winners[award].title())
-        else:
-            print("Winner:", '"' + winners[award].title() + '"')
+    # print("Host:", ', '.join([x.title() for x in hosts]))
+    # output['Hosts'] = [x.title() for x in hosts]
+    # for award in actual_award_names:
+    #     print("Award:", award.title())
+    #     temp = {}
+    #     print("Our Award Name:", max(awards, key= lambda k : fuzz.token_sort_ratio(award, k)).title())
+    #     print("Presenters:", ', '.join([x.title() for x in presenters[award]]))
+    #     temp['Presenters'] = [x.title() for x in presenters[award]]
+    #     if 'performance' or 'director' in award or 'best' not in award:
+    #         print("Nominees:", ', '.join([x.title() for x in nominees[award]]))
+    #     else:
+    #         print("Nominees:", ', '.join(['"' + x.title() + '"' for x in nominees[award]]))
+    #     temp['Nominees'] = [x.title() for x in nominees[award]]
+    #     #print("Winner:", winners[award].title())
+    #     if 'performance' or 'director' in award or 'best' not in award:
+    #         print("Winner:", winners[award].title())
+    #     else:
+    #         print("Winner:", '"' + winners[award].title() + '"')
 
-        temp['Winner'] = winners[award].title()
-        output[award.title()] = temp
-        print()
+    #     temp['Winner'] = winners[award].title()
+    #     output[award.title()] = temp
+    #     print()
 
     ## need to replace this with real sentiments
-    print('Most Loved Person:', sentiments_sorted_descend[0][0].title())
-    print('Most Hated Person:', sentiments_sorted_ascend[0][0].title())
-    with open('output.json', 'w', encoding='UTF-8') as output_file:
-        json.dump(output, output_file)
-    return
+    # print('Most Loved Person:', sentiments_sorted_descend[0][0].title())
+    # print('Most Hated Person:', sentiments_sorted_ascend[0][0].title())
+    # with open('output.json', 'w', encoding='UTF-8') as output_file:
+    #     json.dump(output, output_file)
+    # return
 
 
 if __name__ == '__main__':
