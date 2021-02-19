@@ -277,6 +277,9 @@ def get_nominees(year):
                     continue
                 elif temp != "":
                     capitalized_words.append(temp.lower()[1:])
+                    if temp.lower()[1:] in directors:
+                        sentiments[temp.lower()[1:]] = sentiments.get(temp.lower()[1:], 0) + sentence.polarity * \
+                                           sentence.subjectivity
                     temp = ""
                 if word == '#':
                     checkHashtag = True
@@ -601,7 +604,11 @@ def get_presenters(year):
     '''Presenters is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
-    print(actual_award_names)
+    actual_award_names = []
+    if year == '2013' or year == '2015':
+        actual_award_names = OFFICIAL_AWARDS_1315
+    else:
+        actual_award_names = OFFICIAL_AWARDS_1819
     # Your code here
     try:
         with open('directors.txt', 'r', encoding='UTF-8') as f:
@@ -652,6 +659,7 @@ def get_presenters(year):
                     ppl.append(tokens[i])
             i+=1
         return ppl
+
     presenters, proc_data, award_names, proc_awards = {}, [], {}, []
     keywords = ['presenter','present','presents','presenters','presented']
     award_words = ['best', ' ', 'performance', '', 'award']
@@ -685,10 +693,15 @@ def get_presenters(year):
         no_words.extend(lst)
     # find award and ppl in processed tweets
     for tweet in proc_data:
+
         tweet_tokens = [word for word in tweet.split(' ') if not word in ['', ' ']]  
         correct_award = find_award(tweet_tokens, proc_awards)
         if correct_award is not None:
+            sentence = TextBlob(tweet).sentences[0]
             ppl = find_ppl(tweet_tokens, directors, no_words)
+            for p in ppl:
+                sentiments[p] = sentiments.get(p, 0) + sentence.polarity * \
+                                               sentence.subjectivity
             real_name = award_names[str(correct_award)]
             presenters[real_name].extend(ppl)
     for award in actual_award_names:
@@ -779,7 +792,6 @@ def main(year):
     nominees = get_nominees(year)
     presenters = get_presenters(year)
     winners = get_winner(year)
-    sentiments = {'fdfs' : 100, 'fdso' : 55, 'asfdggb' : -33, 'ffff' : 8}
     sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
     sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
     #print(sentiments_sorted_descend)

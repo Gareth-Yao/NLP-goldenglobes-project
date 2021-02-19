@@ -1,6 +1,9 @@
-To install requirements:
+To install requirements on OS/Linux:
 - run: pip freeze > requirements.txt
-- run: python install -r requirements.txt
+- run: pip install -r requirements.txt
+To install requirements on Windows' Anaconda virtual environment:
+- run: pip install -r requirements.txt
+- run: conda install -c conda-forge python-levenshtein
 
 Running gg_api.py
 - run preceremony: python gg_api.py pre_ceremony year
