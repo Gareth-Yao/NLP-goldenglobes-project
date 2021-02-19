@@ -1,5 +1,4 @@
 To install requirements on OS/Linux:
-- run: pip freeze > requirements.txt
 - run: pip install -r requirements.txt
 To install requirements on Windows' Anaconda virtual environment:
 - run: pip install -r requirements.txt
