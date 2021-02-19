@@ -65,11 +65,21 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 # needs IMDB Data to filter out names/movies (may need database for this). Knowledge Base
 # "X won Y" needs to find a binding list where X is a movie and Y is an award
 # Needs to find a way to combine first name entries and full name entries
-sentiments, actresses, actors, directors, titles, year, data = {}, [], [], [], {}, '', {}
+sentiments, actresses, actors, directors, titles = {}, [], [], [], {}
+actual_award_names = []
 
-def get_hosts(year, data, directors):
+def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
+    try:
+        with open('directors.txt', 'r', encoding='UTF-8') as f:
+            directors = f.read().splitlines()
+            directors = set(directors)
+        with open('gg' + str(year) + ".json") as f:
+            data = json.load(f)
+    except IOError or FileNotFoundError:
+        print("File not found. Run Preceremony individually")
+        sys.exit()
     names = {}
     processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text'] and 'next year' not in x['text']]
     counter = 0
@@ -100,10 +110,16 @@ def get_hosts(year, data, directors):
     hosts = heapq.nlargest(2, names, key=names.get)
     return [freq_map[0][0], freq_map[1][0]]
 
-def get_awards(year, data):
+def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
+    try:
+        with open('gg' + str(year) + ".json") as f:
+            data = json.load(f)
+    except IOError or FileNotFoundError:
+        print("File not found. Run Preceremony individually")
+        sys.exit()
     award_words = ['best', 'motion', 'picture', 'performance', 'actor', 'actress', 'supporting', 'director', 'screenplay', 'drama', 'comedy', 'musical', 'animated', 'feature', 'film', 'foreign', 'language', 'original', 'song', 'screenplay', 'score', 'television', 'series', 'tv']
     award_fluff = ['a', 'an', 'by', 'for', 'in', 'or']
     abridged_names = {}
@@ -191,6 +207,7 @@ def get_awards(year, data):
 
 
 def get_nominees(year):
+    print(actual_award_names)
     with open('gg' + sys.argv[1] + '.json') as f:
         data = json.load(f)
     with open('titles.json', encoding='UTF-8') as f:
@@ -237,8 +254,8 @@ def get_nominees(year):
         words = re.sub(r'[^a-zA-Z0-9#: .\-]+', ' ', words)
         textb = TextBlob(words)
         capitalized_words = []
-        if 'nominate' in tweet['text']:
-            print()
+        #if 'nominate' in tweet['text']:
+            #print()
         for sentence in textb.sentences:
             # split_sentence = re.sub(r'[^A-Za-z0-9#: \-]+', ' ', sentence.raw).split()
             split_sentence = sentence.tokens
@@ -267,7 +284,7 @@ def get_nominees(year):
         awards = {}
         award_phrases = []
         for noun in capitalized_words:
-            if noun.lower() in OFFICIAL_AWARDS_1315:
+            if noun.lower() in actual_award_names:
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
                 award_phrases.append(noun.lower())
@@ -283,7 +300,7 @@ def get_nominees(year):
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 60]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in actual_award_names if fuzz.token_sort_ratio(noun.lower(), x) > 60]
                 for award in possible_awards:
                     award_phrases.append(temp)
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
@@ -360,7 +377,7 @@ def get_nominees(year):
     for award in names.keys():
         nominees[award] = sorted(names[award].items(), key=lambda key : key[1])[-5:]
         nominees[award] = [x[0] for x in nominees[award]]
-    print(nominees)
+    #print(nominees)
     return nominees
 
 def get_winner(year):
@@ -368,7 +385,6 @@ def get_winner(year):
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
     # Your code here
-    '''
     try:
         with open('titles.json', 'r', encoding='UTF-8') as f:
             titles = json.load(f)
@@ -387,7 +403,6 @@ def get_winner(year):
     except IOError or FileNotFoundError:
         print("File not found. Run Preceremony individually")
         sys.exit()
-    '''
     sensitive_words = ['supporting', 'actor','actress','of']
     names = {}
     winners = {}
@@ -440,7 +455,7 @@ def get_winner(year):
         # text = tweet['text'].split(' ')
         # sentence_sentiment = TextBlob(' '.join(re.findall('[a-zA-Z0-9]+', tweet['text'])))
         for noun in capitalized_words:
-            if noun.lower() in OFFICIAL_AWARDS_1315:
+            if noun.lower() in actual_award_names:
 
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
@@ -457,9 +472,9 @@ def get_winner(year):
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
 
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
-                if 'maggie smith' in capitalized_words:
-                    print()
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in actual_award_names if fuzz.token_sort_ratio(noun.lower(), x) > 80]
+                #if 'maggie smith' in capitalized_words:
+                    #print()
                 for award in possible_awards:
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
 
@@ -517,9 +532,6 @@ def get_winner(year):
                                     temp[tempkey] = temp.get(tempkey, 0) + awards[award]
                                     names[award] = temp
 
-
-
-
     for award in names.keys():
         winners[award] = max(names[award].items(), key=lambda key : key[1])[0]
         # text = TextBlob(x['text'].lower())
@@ -568,11 +580,20 @@ def get_winner(year):
 #     return []
 
 
-def get_presenters(year, data, directors, awards):
+def get_presenters(year):
     '''Presenters is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
     # Your code here
+    try:
+        with open('directors.txt', 'r', encoding='UTF-8') as f:
+            directors = f.read().splitlines()
+            directors = set(directors)
+        with open('gg' + str(year) + ".json") as f:
+            data = json.load(f)
+    except IOError or FileNotFoundError:
+        print("File not found. Run Preceremony individually")
+        sys.exit()
     def find_award(tokens, awards):
         match, max_common = [], 0
         for award in awards:
@@ -625,7 +646,7 @@ def get_presenters(year, data, directors, awards):
             if not 'not present' in tweet and not 'represent' in tweet:
                 proc_data.append(tweet)
     # process award names to make easier to match
-    for award in awards:
+    for award in actual_award_names:
         og_award = award
         award = re.sub(r'[^\w\s]','', award).lower()
         award_tokens = award.split(' ')
@@ -652,7 +673,7 @@ def get_presenters(year, data, directors, awards):
             ppl = find_ppl(tweet_tokens, directors, no_words)
             real_name = award_names[str(correct_award)]
             presenters[real_name].extend(ppl)
-    for award in awards:
+    for award in actual_award_names:
         count = Counter(presenters[award])
         num_pres = 1 if award == 'cecil b. demille award' else 2
         pre = sorted(count.items(), key=lambda x:x[1], reverse=True)[:num_pres]
@@ -662,16 +683,15 @@ def get_presenters(year, data, directors, awards):
 
 
 def pre_ceremony(year):
-    with open('info.txt', 'w', encoding='UTF-8') as info_file:
-        json.dump(year, info_file)
+    global actresses, actors, directors, titles
     download_corpora.main()
     actors_download = request.urlopen("https://datasets.imdbws.com/name.basics.tsv.gz")
     titles_download = request.urlopen("https://datasets.imdbws.com/title.basics.tsv.gz")
     if path.exists('actors.txt') and path.exists('actresses.txt') and path.exists('directors.txt'):
-        print('Actor files already exist. Skipping download.')
+        print('Actor files already exist. Skipping download')
     else:
         actors_zipped = gzip.GzipFile(fileobj=actors_download)
-        actors_zipped.readline() 
+        actors_zipped.readline()
         for line in actors_zipped:
             actor_info = line.decode('UTF-8').split('\t')
             if actor_info[2] == '\\N':
@@ -694,236 +714,58 @@ def pre_ceremony(year):
                 director = re.sub(r'[^\w\s]','', director)
                 actors_file.write('%s\n' % director)
     year = int(year)
-   
-    if path.exists('titles.json'):
-        print('Titles file already exists. Skipping download.')
-    else:
-        titles_zipped = gzip.GzipFile(fileobj=titles_download)
-        schema = titles_zipped.readline().decode('UTF-8').split('\t')
-        schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
+    titles_zipped = gzip.GzipFile(fileobj=titles_download)
+    schema = titles_zipped.readline().decode('UTF-8').split('\t')
+    schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
 
-        for line in titles_zipped:
-            title_info = line.decode('UTF-8').split('\t')
-            title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
+    for line in titles_zipped:
+        title_info = line.decode('UTF-8').split('\t')
+        title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
 
-            try:
-                if title_info[5] == '\\N' or \
-                        (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
-                        (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
-                        (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
-                    continue
-            except ValueError:
+        try:
+            if title_info[5] == '\\N' or \
+                    (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
+                    (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
+                    (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
                 continue
+        except ValueError:
+            continue
 
-            title = {}
-            for i in range(len(schema)):
-                title_info[i] = title_info[i].lower()
-                title[schema[i]] = title_info[i]
-            titles[title['primaryTitle']] = title
-        with open('titles.json', 'w', encoding='UTF-8') as titles_file:
-            json.dump(titles, titles_file)
+        title = {}
+        for i in range(len(schema)):
+            title_info[i] = title_info[i].lower()
+            title[schema[i]] = title_info[i]
+        titles[title['primaryTitle']] = title
+    with open('titles.json', 'w', encoding='UTF-8') as titles_file:
+        json.dump(titles, titles_file)
     print("Pre-ceremony processing complete.")
     return
 
-def main():
-    try:
-        with open('info.txt', 'r', encoding='UTF-8') as f:
-            year = json.load(f)
-        with open('titles.json', 'r', encoding='UTF-8') as f:
-            titles = json.load(f)
-            titles = set(titles.keys())
-        with open('actors.txt', 'r', encoding='UTF-8') as f:
-            actors = f.read().splitlines()
-            actors = set(actors)
-        with open('actresses.txt', 'r', encoding='UTF-8') as f:
-            actresses = f.read().splitlines()
-            actresses = set(actresses)
-        with open('directors.txt', 'r', encoding='UTF-8') as f:
-            directors = f.read().splitlines()
-            directors = set(directors)
-        with open('gg' + str(year) + ".json") as f:
-            data = json.load(f)
-    except IOError or FileNotFoundError:
-        print("File not found. Run Preceremony individually")
-        sys.exit()
-    if year == '2013' or year == '2015':
-        fixed_awards = OFFICIAL_AWARDS_1315
-    else:
-        fixed_awards = OFFICIAL_AWARDS_1819
-    hosts = get_hosts(year, data, directors)
-    awards = get_awards(year, data)
-    presenters = get_presenters(year, data, directors, fixed_awards)
-    print(presenters)
-    return
-    
-
-
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-       main() 
-    else:
-        try:
-            year = sys.argv[2]
-            pre_ceremony(year)
-        except:
-            print('Please put in year and json file name after preceremony')
-
-'''
-def main():
-    ''' '''This function calls your program. Typing "python gg_api.py"
+def main(year):
+    '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
     run when grading. Do NOT change the name of this function or
-    what it returns.''' '''
+    what it returns.'''
     # Your code here
-
-    answer = {"award_data": {"best screenplay - motion picture": {
-        "nominees": ["zero dark thirty", "lincoln", "silver linings playbook", "argo"],
-        "presenters": ["robert pattinson", "amanda seyfried"], "winner": "django unchained"},
-                                                          "best director - motion picture": {
-                                                              "nominees": ["kathryn bigelow", "ang lee",
-                                                                           "steven spielberg", "quentin tarantino"],
-                                                              "presenters": ["halle berry"], "winner": "ben affleck"},
-                                                          "best performance by an actress in a television series - comedy or musical": {
-                                                              "nominees": ["zooey deschanel", "tina fey",
-                                                                           "julia louis-dreyfus", "amy poehler"],
-                                                              "presenters": ["aziz ansari", "jason bateman"],
-                                                              "winner": "lena dunham"}, "best foreign language film": {
-            "nominees": ["the intouchables", "kon tiki", "a royal affair", "rust and bone"],
-            "presenters": ["arnold schwarzenegger", "sylvester stallone"], "winner": "amour"},
-                                                          "best performance by an actor in a supporting role in a motion picture": {
-                                                              "nominees": ["alan arkin", "leonardo dicaprio",
-                                                                           "philip seymour hoffman", "tommy lee jones"],
-                                                              "presenters": ["bradley cooper", "kate hudson"],
-                                                              "winner": "christoph waltz"},
-                                                          "best performance by an actress in a supporting role in a series, mini-series or motion picture made for television": {
-                                                              "nominees": ["hayden panettiere", "archie panjabi",
-                                                                           "sarah paulson", "sofia vergara"],
-                                                              "presenters": ["dennis quaid", "kerry washington"],
-                                                              "winner": "maggie smith"},
-                                                          "best motion picture - comedy or musical": {
-                                                              "nominees": ["the best exotic marigold hotel",
-                                                                           "moonrise kingdom",
-                                                                           "salmon fishing in the yemen",
-                                                                           "silver linings playbook"],
-                                                              "presenters": ["dustin hoffman"],
-                                                              "winner": "les miserables"},
-                                                          "best performance by an actress in a motion picture - comedy or musical": {
-                                                              "nominees": ["emily blunt", "judi dench", "maggie smith",
-                                                                           "meryl streep"],
-                                                              "presenters": ["will ferrell", "kristen wiig"],
-                                                              "winner": "jennifer lawrence"},
-                                                          "best mini-series or motion picture made for television": {
-                                                              "nominees": ["the girl", "hatfields & mccoys", "the hour",
-                                                                           "political animals"],
-                                                              "presenters": ["don cheadle", "eva longoria"],
-                                                              "winner": "game change"},
-                                                          "best original score - motion picture": {
-                                                              "nominees": ["argo", "anna karenina", "cloud atlas",
-                                                                           "lincoln"],
-                                                              "presenters": ["jennifer lopez", "jason statham"],
-                                                              "winner": "life of pi"},
-                                                          "best performance by an actress in a television series - drama": {
-                                                              "nominees": ["connie britton", "glenn close",
-                                                                           "michelle dockery", "julianna margulies"],
-                                                              "presenters": ["nathan fillion", "lea michele"],
-                                                              "winner": "claire danes"},
-                                                          "best performance by an actress in a motion picture - drama": {
-                                                              "nominees": ["marion cotillard", "sally field",
-                                                                           "helen mirren", "naomi watts",
-                                                                           "rachel weisz"],
-                                                              "presenters": ["george clooney"],
-                                                              "winner": "jessica chastain"},
-                                                          "cecil b. demille award": {"nominees": [], "presenters": [
-                                                              "robert downey, jr."], "winner": "jodie foster"},
-                                                          "best performance by an actor in a motion picture - comedy or musical": {
-                                                              "nominees": ["jack black", "bradley cooper",
-                                                                           "ewan mcgregor", "bill murray"],
-                                                              "presenters": ["jennifer garner"],
-                                                              "winner": "hugh jackman"},
-                                                          "best motion picture - drama": {
-                                                              "nominees": ["django unchained", "life of pi", "lincoln",
-                                                                           "zero dark thirty"],
-                                                              "presenters": ["julia roberts"], "winner": "argo"},
-                                                          "best performance by an actor in a supporting role in a series, mini-series or motion picture made for television": {
-                                                              "nominees": ["max greenfield", "danny huston",
-                                                                           "mandy patinkin", "eric stonestreet"],
-                                                              "presenters": ["kristen bell", "john krasinski"],
-                                                              "winner": "ed harris"},
-                                                          "best performance by an actress in a supporting role in a motion picture": {
-                                                              "nominees": ["amy adams", "sally field", "helen hunt",
-                                                                           "nicole kidman"],
-                                                              "presenters": ["megan fox", "jonah hill"],
-                                                              "winner": "anne hathaway"},
-                                                          "best television series - drama": {
-                                                              "nominees": ["boardwalk empire", "breaking bad",
-                                                                           "downton abbey (masterpiece)",
-                                                                           "the newsroom"],
-                                                              "presenters": ["salma hayek", "paul rudd"],
-                                                              "winner": "homeland"},
-                                                          "best performance by an actor in a mini-series or motion picture made for television": {
-                                                              "nominees": ["benedict cumberbatch", "woody harrelson",
-                                                                           "toby jones", "clive owen"],
-                                                              "presenters": ["jessica alba", "kiefer sutherland"],
-                                                              "winner": "kevin costner"},
-                                                          "best performance by an actress in a mini-series or motion picture made for television": {
-                                                              "nominees": ["nicole kidman", "jessica lange",
-                                                                           "sienna miller", "sigourney weaver"],
-                                                              "presenters": ["don cheadle", "eva longoria"],
-                                                              "winner": "julianne moore"},
-                                                          "best animated feature film": {
-                                                              "nominees": ["frankenweenie", "hotel transylvania",
-                                                                           "rise of the guardians", "wreck-it ralph"],
-                                                              "presenters": ["sacha baron cohen"], "winner": "brave"},
-                                                          "best original song - motion picture": {
-                                                              "nominees": ["act of valor", "stand up guys",
-                                                                           "the hunger games", "les miserables"],
-                                                              "presenters": ["jennifer lopez", "jason statham"],
-                                                              "winner": "skyfall"},
-                                                          "best performance by an actor in a motion picture - drama": {
-                                                              "nominees": ["richard gere", "john hawkes",
-                                                                           "joaquin phoenix", "denzel washington"],
-                                                              "presenters": ["george clooney"],
-                                                              "winner": "daniel day-lewis"},
-                                                          "best television series - comedy or musical": {
-                                                              "nominees": ["the big bang theory", "episodes",
-                                                                           "modern family", "smash"],
-                                                              "presenters": ["jimmy fallon", "jay leno"],
-                                                              "winner": "girls"},
-                                                          "best performance by an actor in a television series - drama": {
-                                                              "nominees": ["steve buscemi", "bryan cranston",
-                                                                           "jeff daniels", "jon hamm"],
-                                                              "presenters": ["salma hayek", "paul rudd"],
-                                                              "winner": "damian lewis"},
-                                                          "best performance by an actor in a television series - comedy or musical": {
-                                                              "nominees": ["alec baldwin", "louis c.k.", "matt leblanc",
-                                                                           "jim parsons"],
-                                                              "presenters": ["lucy liu", "debra messing"],
-                                                              "winner": "don cheadle"}}}
-    hosts = ["amy poehler", "tina fey"]
-    award_data = answer["award_data"]
-    awards = award_data.keys()
-    nominees = {k:v['nominees'] for (k,v) in award_data.items()}
-    presenters = {k:v['presenters'] for (k,v) in award_data.items()}
-    winners = {k:v['winner'] for (k,v) in award_data.items()}
-    #print(hosts)
-    #     # get_presenters(2013, data, actors, OFFICIAL_AWARDS_1315)
-    #     # get_winner(2013, data)
-    #     # get_nominees(2013, data)
-    #     # sentiment_analysis(2013, data, actors, OFFICIAL_AWARDS_1315, titles)
-    sentiments = {'fdfs' : 100, 'fdso' : 55, 'asfdggb' : -33, 'ffff' : 8}
-    sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
-    sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
-
-    print(sentiments_sorted_descend)
-    print(sentiments_sorted_ascend)
-    actual_award_names = []
+    global actual_award_names
     output = {}
-
+    
     if year == '2013' or year == '2015':
         actual_award_names = OFFICIAL_AWARDS_1315
     else:
         actual_award_names = OFFICIAL_AWARDS_1819
+    hosts = get_hosts(year)
+    #award_data = answer["award_data"]
+    awards = get_awards(year)
+    nominees = get_nominees(year)
+    presenters = get_presenters(year)
+    winners = get_winner(year)
+    sentiments = {'fdfs' : 100, 'fdso' : 55, 'asfdggb' : -33, 'ffff' : 8}
+    sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
+    sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
+    #print(sentiments_sorted_descend)
+    #print(sentiments_sorted_ascend)
     print("Host:", ', '.join([x.title() for x in hosts]))
     output['Hosts'] = [x.title() for x in hosts]
     for award in actual_award_names:
@@ -937,7 +779,7 @@ def main():
         else:
             print("Nominees:", ', '.join(['"' + x.title() + '"' for x in nominees[award]]))
         temp['Nominees'] = [x.title() for x in nominees[award]]
-        print("Winner:", winners[award].title())
+        #print("Winner:", winners[award].title())
         if 'performance' or 'director' in award or 'best' not in award:
             print("Winner:", winners[award].title())
         else:
@@ -947,10 +789,21 @@ def main():
         output[award.title()] = temp
         print()
 
+    ## need to replace this with real sentiments
     print('Most Loved Person:', sentiments_sorted_descend[0][0].title())
     print('Most Hated Person:', sentiments_sorted_ascend[0][0].title())
-
     with open('output.json', 'w', encoding='UTF-8') as output_file:
         json.dump(output, output_file)
     return
-'''
+
+
+if __name__ == '__main__':
+    if sys.argv[1] == 'pre_ceremony':
+        try:
+            year = sys.argv[2]
+            pre_ceremony(year)
+        except:
+            print('Please input a year after pre_ceremony')
+    else:
+        year = sys.argv[1]
+        main(year)
