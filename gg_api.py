@@ -228,7 +228,11 @@ def get_nominees(year):
     # Your code here
     nominees = {}
     names = {}
-
+    real_awards = []
+    if year == '2013' or year == '2015':
+        real_awards = OFFICIAL_AWARDS_1315
+    else:
+        real_awards = OFFICIAL_AWARDS_1819
     nlp = spacy.load("en_core_web_sm")
     all_stopwords = nlp.Defaults.stop_words
     all_stopwords.update(['motion picture', 'goldenglobe', 'goldenglobes', 'golden globes', 'golden globe', 'congrats', 'congratulations', 'hbo', 'tonight', 'television','showtime','definitely','yay', 'drama', 'certainly', 'musical', 'globes', 'yey'])
@@ -284,7 +288,7 @@ def get_nominees(year):
         awards = {}
         award_phrases = []
         for noun in capitalized_words:
-            if noun.lower() in actual_award_names:
+            if noun.lower() in real_awards:
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
                 award_phrases.append(noun.lower())
@@ -300,7 +304,7 @@ def get_nominees(year):
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in actual_award_names if fuzz.token_sort_ratio(noun.lower(), x) > 60]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in real_awards if fuzz.token_sort_ratio(noun.lower(), x) > 60]
                 for award in possible_awards:
                     award_phrases.append(temp)
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
@@ -377,6 +381,10 @@ def get_nominees(year):
     for award in names.keys():
         nominees[award] = sorted(names[award].items(), key=lambda key : key[1])[-5:]
         nominees[award] = [x[0] for x in nominees[award]]
+
+    for award in real_awards:
+        if award not in nominees.keys():
+            nominees[award] = dict()
     #print(nominees)
     return nominees
 
@@ -406,6 +414,11 @@ def get_winner(year):
     sensitive_words = ['supporting', 'actor','actress','of']
     names = {}
     winners = {}
+    real_awards = []
+    if year == '2013' or year == '2015':
+        real_awards = OFFICIAL_AWARDS_1315
+    else:
+        real_awards = OFFICIAL_AWARDS_1819
     processed_data = [x for x in data if 'hop' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and ('best' in x['text'].lower() or 'award' in x['text'].lower()) and
                       ('goes to' in x['text'] or 'wins' in x['text'].split() or 'won' in x['text'].split() or 'awarded' in x['text'].split() or 'receives' in x['text'].lower())]
     counter = 0
@@ -455,7 +468,7 @@ def get_winner(year):
         # text = tweet['text'].split(' ')
         # sentence_sentiment = TextBlob(' '.join(re.findall('[a-zA-Z0-9]+', tweet['text'])))
         for noun in capitalized_words:
-            if noun.lower() in actual_award_names:
+            if noun.lower() in real_awards:
 
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
@@ -472,7 +485,7 @@ def get_winner(year):
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
 
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in actual_award_names if fuzz.token_sort_ratio(noun.lower(), x) > 80]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in real_awards if fuzz.token_sort_ratio(noun.lower(), x) > 80]
                 #if 'maggie smith' in capitalized_words:
                     #print()
                 for award in possible_awards:
@@ -534,6 +547,10 @@ def get_winner(year):
 
     for award in names.keys():
         winners[award] = max(names[award].items(), key=lambda key : key[1])[0]
+
+    for award in real_awards:
+        if award not in winners.keys():
+            winners[award] = dict()
         # text = TextBlob(x['text'].lower())
         # tokens = text.tokens
         # if 'wins' in tokens or 'won' in tokens or 'goes to' in tokens or 'awarded' in tokens:
@@ -584,6 +601,7 @@ def get_presenters(year):
     '''Presenters is a dictionary with the hard coded award
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
+    print(actual_award_names)
     # Your code here
     try:
         with open('directors.txt', 'r', encoding='UTF-8') as f:
