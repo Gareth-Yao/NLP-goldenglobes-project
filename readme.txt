@@ -1,6 +1,6 @@
 To install requirements on OS/Linux:
-- run: pip install -r requirements.txt
-To install requirements on Windows' Anaconda virtual environment with pip installed:
+- run: pip install -r mac_requirements.txt
+To install requirements on Windows' Anaconda virtual environment:
 - run: pip install -r windows_requirements.txt
 - run: conda install -c conda-forge python-levenshtein
 
