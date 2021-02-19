@@ -65,29 +65,17 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 # needs IMDB Data to filter out names/movies (may need database for this). Knowledge Base
 # "X won Y" needs to find a binding list where X is a movie and Y is an award
 # Needs to find a way to combine first name entries and full name entries
-sentiments, actresses, actors, directors, titles = {}, [], [], [], {}
+sentiments, actresses, actors, directors, titles, year, data = {}, [], [], [], {}, '', {}
 
-def get_hosts(year):
-    try:
-        with open('directors.txt', 'r', encoding='UTF-8') as f:
-            directors = f.read().splitlines()
-            directors = set(directors)
-        with open('gg' + str(year) + ".json") as f:
-            data = json.load(f)
-    except IOError or FileNotFoundError:
-        print("File not found. Run Preceremony individually")
-        sys.exit()
-
+def get_hosts(year, data, directors):
+    '''Hosts is a list of one or more strings. Do NOT change the name
+    of this function or what it returns.'''
     names = {}
     processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text'] and 'next year' not in x['text']]
     counter = 0
     freq_map = []
     for tweet in processed_data:
-        # print((counter / len(processed_data)) * 100)
-        # text = TextBlob(tweet['text'])
-        # text = re.sub('[^a-zA-Z0-9 ]', '', tweet['text'])
         text = re.sub('[^a-zA-Z0-9 ]', '', tweet['text'])
-        # text = tweet['text'].split(' ')
         sentence = TextBlob(text).sentences[0]
         capitalized_words = []
         temp = ""
@@ -107,51 +95,15 @@ def get_hosts(year):
             capitalized_words.append(temp.lower()[1:])
         names_in_tweet = [x for x in capitalized_words if x in directors and not any(y.startswith(x) and y != x for y in freq_map[:10])]
         freq_map.extend(names_in_tweet)
-        # for noun in names_in_tweet:
-            # if noun not in re_search.keys():
-            #     # p = re.compile('^' + noun + '.*')
-            #     # filtered_actors = list(filter(p.match, actors))
-            #     filtered_actors = [x for x in actors if x.startswith(noun)]
-            #     re_search[noun] = filtered_actors
-            # filtered_actors = re_search[noun]
-            # for name in filtered_actors:
-            #     names[name] = names.get(name, 0) + 1
-            # if noun in names.keys() or noun in directors:
-            #     names[noun] = names.get(noun, 0) + 1
-            #     sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
-
-            # n = list(names.keys())
-            # for name in n[:5]:
-            #     if name.startswith(noun) and name != noun:
-            #         if noun in names.keys():
-            #             sentiments[noun] = sentiments.get(noun, 0) - split_sentence.sentences[0].polarity * \
-            #                                split_sentence.sentences[0].subjectivity
-            #         names[name] = names[name] + 1
-            # if noun not in re_search.keys():
-            #     re_search[noun] = heapq.nlargest(10, names, key=names.get)
-            # n = re_search[noun]
-        # counter += 1
-
-
-    '''Hosts is a list of one or more strings. Do NOT change the name
-    of this function or what it returns.'''
-    # Your code here
-
-
-
-    # names_sorted = sorted(names.items(), key=lambda x: x[1], reverse=True)
-    # sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
-    # sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
     freq_map = FreqDist(freq_map)
     freq_map = freq_map.most_common(2)
-    # hosts = heapq.nlargest(2, names, key=names.get)
+    hosts = heapq.nlargest(2, names, key=names.get)
     return [freq_map[0][0], freq_map[1][0]]
 
 def get_awards(year, data):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-
     award_words = ['best', 'motion', 'picture', 'performance', 'actor', 'actress', 'supporting', 'director', 'screenplay', 'drama', 'comedy', 'musical', 'animated', 'feature', 'film', 'foreign', 'language', 'original', 'song', 'screenplay', 'score', 'television', 'series', 'tv']
     award_fluff = ['a', 'an', 'by', 'for', 'in', 'or']
     abridged_names = {}
@@ -159,7 +111,6 @@ def get_awards(year, data):
     bigrams = {}
 
     processed_data = [x for x in data if "won " in x["text"] or "wins " in x["text"] or "goes to " in x["text"] or "Won " in x["text"] or "Wins " in x["text"] or "Goes to " in x["text"]]
-
 
     for tweet in processed_data:
         s_tweet = re.findall('[a-zA-Z0-9]+', tweet["text"].lower())
@@ -171,7 +122,6 @@ def get_awards(year, data):
             s_tweet = s_tweet[:s_tweet.index("goes")]
         else:
             continue
-
         found = False
         for i, w_ in enumerate(s_tweet):
             if w_ in award_words:
@@ -181,10 +131,8 @@ def get_awards(year, data):
                     found = True
                 else:
                     end = i
-
         name = []
         name_abr = []
-
         try:
             i = start
             while i <= end:
@@ -200,7 +148,6 @@ def get_awards(year, data):
                 i += 1
 
             if len(name_abr) >= 2:
-
                 award = ' '.join(sorted(set(name), key=lambda x: s_tweet.index(x)))
                 award_abr = ' '.join(sorted(set(name_abr), key=lambda x: s_tweet.index(x)))
                 if len(award_abr) >= 1:
@@ -216,26 +163,20 @@ def get_awards(year, data):
 
                 for b_ in bg:
                     bigrams[b_] = 1 if b_ not in bigrams else bigrams[b_] + 1
-
         except Exception as e:
-            #print(e)
             pass
-
     mcbg = []
     appearances = 25
     for b_ in list(bigrams.keys()):
         if bigrams[b_] >= appearances:
             mcbg.append(b_)
-
     def cbg_count(a_):
         count = 0
         for b_ in mcbg:
             if b_ in a_:
                 count += 1
         return count
-
     final_a_list = []
-
     for n_ in list(abridged_names.keys()):
         max_ = -1
         name_ = ''
@@ -245,7 +186,6 @@ def get_awards(year, data):
                 name_ = award
         if cbg_count(name_) >= 3:
             final_a_list.append(name_)
-
     final_a_list = [x for x in sorted(final_a_list, key=lambda x: len(x.split()), reverse=True) if x[:4] == "best"]
     return final_a_list
 
@@ -389,6 +329,7 @@ def get_winner(year):
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
     # Your code here
+    '''
     try:
         with open('titles.json', 'r', encoding='UTF-8') as f:
             titles = json.load(f)
@@ -407,7 +348,7 @@ def get_winner(year):
     except IOError or FileNotFoundError:
         print("File not found. Run Preceremony individually")
         sys.exit()
-
+    '''
     sensitive_words = ['supporting', 'actor','actress','of']
     names = {}
     winners = {}
@@ -680,18 +621,16 @@ def get_presenters(year, data, directors, awards):
 
 
 def pre_ceremony(year):
-    global actresses, actors, directors, titles
+    with open('info.txt', 'w', encoding='UTF-8') as info_file:
+        json.dump(year, info_file)
     download_corpora.main()
     actors_download = request.urlopen("https://datasets.imdbws.com/name.basics.tsv.gz")
     titles_download = request.urlopen("https://datasets.imdbws.com/title.basics.tsv.gz")
-    '''
     if path.exists('actors.txt') and path.exists('actresses.txt') and path.exists('directors.txt'):
-        print('Actor files already exist. Skipping download')
+        print('Actor files already exist. Skipping download.')
     else:
-    '''
-    try:
         actors_zipped = gzip.GzipFile(fileobj=actors_download)
-        actors_zipped.readline()
+        actors_zipped.readline() 
         for line in actors_zipped:
             actor_info = line.decode('UTF-8').split('\t')
             if actor_info[2] == '\\N':
@@ -701,7 +640,6 @@ def pre_ceremony(year):
             if 'actress' in actor_info[4]:
                 actresses.append(actor_info[1].lower())
             directors.append(actor_info[1].lower())
-        '''
         with open('actors.txt', 'w', encoding='UTF-8') as actors_file:
             for actor in actors:
                 actor = re.sub(r'[^\w\s]','', actor)
@@ -714,45 +652,87 @@ def pre_ceremony(year):
             for director in directors:
                 director = re.sub(r'[^\w\s]','', director)
                 actors_file.write('%s\n' % director)
-        '''
-    except:
-        print('download failed')
     year = int(year)
-    titles_zipped = gzip.GzipFile(fileobj=titles_download)
-    schema = titles_zipped.readline().decode('UTF-8').split('\t')
-    schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
+   
+    if path.exists('titles.json'):
+        print('Titles file already exists. Skipping download.')
+    else:
+        titles_zipped = gzip.GzipFile(fileobj=titles_download)
+        schema = titles_zipped.readline().decode('UTF-8').split('\t')
+        schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
 
-    for line in titles_zipped:
-        title_info = line.decode('UTF-8').split('\t')
-        title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
+        for line in titles_zipped:
+            title_info = line.decode('UTF-8').split('\t')
+            title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
 
-        try:
-            if title_info[5] == '\\N' or \
-                    (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
-                    (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
-                    (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
+            try:
+                if title_info[5] == '\\N' or \
+                        (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
+                        (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
+                        (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
+                    continue
+            except ValueError:
                 continue
-        except ValueError:
-            continue
 
-        title = {}
-        for i in range(len(schema)):
-            title_info[i] = title_info[i].lower()
-            title[schema[i]] = title_info[i]
-        titles[title['primaryTitle']] = title
-    '''
-    with open('titles.json', 'w', encoding='UTF-8') as titles_file:
-        json.dump(titles, titles_file)
-    '''
+            title = {}
+            for i in range(len(schema)):
+                title_info[i] = title_info[i].lower()
+                title[schema[i]] = title_info[i]
+            titles[title['primaryTitle']] = title
+        with open('titles.json', 'w', encoding='UTF-8') as titles_file:
+            json.dump(titles, titles_file)
     print("Pre-ceremony processing complete.")
     return
 
 def main():
-    '''This function calls your program. Typing "python gg_api.py"
+    try:
+        with open('info.txt', 'r', encoding='UTF-8') as f:
+            year = json.load(f)
+        with open('titles.json', 'r', encoding='UTF-8') as f:
+            titles = json.load(f)
+            titles = set(titles.keys())
+        with open('actors.txt', 'r', encoding='UTF-8') as f:
+            actors = f.read().splitlines()
+            actors = set(actors)
+        with open('actresses.txt', 'r', encoding='UTF-8') as f:
+            actresses = f.read().splitlines()
+            actresses = set(actresses)
+        with open('directors.txt', 'r', encoding='UTF-8') as f:
+            directors = f.read().splitlines()
+            directors = set(directors)
+        with open('gg' + str(year) + ".json") as f:
+            data = json.load(f)
+    except IOError or FileNotFoundError:
+        print("File not found. Run Preceremony individually")
+        sys.exit()
+    if year == '2013' or year == '2015':
+        fixed_awards = OFFICIAL_AWARDS_1315
+    else:
+        fixed_awards = OFFICIAL_AWARDS_1819
+    hosts = get_hosts(year, data, directors)
+    awards = get_awards(year, data)
+    presenters = get_presenters(year, data, directors, fixed_awards)
+    print(presenters)
+    return
+    
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+       main() 
+    else:
+        try:
+            year = sys.argv[2]
+            pre_ceremony(year)
+        except:
+            print('Please put in year and json file name after preceremony')
+
+'''
+def main():
+    ''' '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
     run when grading. Do NOT change the name of this function or
-    what it returns.'''
+    what it returns.''' '''
     # Your code here
     answer = {"award_data": {"best screenplay - motion picture": {
         "nominees": ["zero dark thirty", "lincoln", "silver linings playbook", "argo"],
@@ -930,15 +910,4 @@ def main():
     with open('output.json', 'w', encoding='UTF-8') as output_file:
         json.dump(output, output_file)
     return
-
-
-if __name__ == '__main__':
-    if sys.argv[1] == 'pre_ceremony':
-        try:
-            year = sys.argv[2]
-            pre_ceremony(year)
-        except:
-            print('Please input a year after pre_ceremony')
-    else:
-        tweet_f, year = sys.argv[1], sys.argv[2]
-        main(tweet_f, year)
+'''
