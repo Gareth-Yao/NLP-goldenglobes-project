@@ -15,7 +15,7 @@ from collections import Counter
 
 from collections import OrderedDict
 from nltk import FreqDist
-import nltk
+
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
                         'best performance by an actress in a motion picture - drama',
@@ -77,9 +77,7 @@ def get_hosts(year):
     except IOError or FileNotFoundError:
         print("File not found. Run Preceremony individually")
         sys.exit()
-    # stop_words = nltk.corpus.stopwords.words('english')
-    # stop_words.extend(['goldenglobe','goldenglobes'])
-    # stop_words = set(stop_words)
+
     names = {}
     processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text'] and 'next year' not in x['text']]
     counter = 0
@@ -98,19 +96,16 @@ def get_hosts(year):
                 temp += " " + word
             elif temp != "":
                 noun = temp.lower()[1:]
-                # if not any(x.startswith(noun) for x in freq_map):
                 capitalized_words.append(temp.lower()[1:])
-                # if noun in names.keys() or noun in directors:
-                #     names[noun] = names.get(noun, 0) + 1
-                #     sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
+                if noun in directors:
+                    sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
                 temp = ""
         if temp != "":
-            # noun = temp.lower()[1:]
-            # if noun in names.keys() or noun in directors:
-            #     names[noun] = names.get(noun, 0) + 1
-            #     sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
+            noun = temp.lower()[1:]
+            if noun in directors:
+                sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
             capitalized_words.append(temp.lower()[1:])
-        names_in_tweet = [x for x in capitalized_words if ' ' in x and x in directors]
+        names_in_tweet = [x for x in capitalized_words if x in directors and not any(y.startswith(x) and y != x for y in freq_map[:10])]
         freq_map.extend(names_in_tweet)
         # for noun in names_in_tweet:
             # if noun not in re_search.keys():
@@ -397,12 +392,16 @@ def get_winner(year):
     try:
         with open('titles.json', 'r', encoding='UTF-8') as f:
             titles = json.load(f)
+            titles = set(titles.keys())
         with open('actors.txt', 'r', encoding='UTF-8') as f:
             actors = f.read().splitlines()
+            actors = set(actors)
         with open('actresses.txt', 'r', encoding='UTF-8') as f:
             actresses = f.read().splitlines()
+            actresses = set(actresses)
         with open('directors.txt', 'r', encoding='UTF-8') as f:
             directors = f.read().splitlines()
+            directors = set(directors)
         with open('gg' + str(year) + ".json") as f:
             data = json.load(f)
     except IOError or FileNotFoundError:
@@ -423,7 +422,6 @@ def get_winner(year):
         words = re.compile(re.escape('movie'),re.IGNORECASE).sub('Motion Picture', words)
         words = re.compile(re.escape('tv'),re.IGNORECASE).sub('Television', words)
         words = re.compile(re.escape('in a')).sub('In A', words)
-
         words = re.compile(re.escape('miniseries'),re.IGNORECASE).sub('Mini-Series', words)
         # words = words.replace('supporting', 'Supporting')
         # words = words.replace('actor', 'Actor')
@@ -519,7 +517,7 @@ def get_winner(year):
                         #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
                         #             names[award] = temp
                     elif 'film' in award or 'motion picture' in award or 'series' in award:
-                        if noun in titles.keys():
+                        if noun in titles:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
                         # else:
@@ -528,7 +526,7 @@ def get_winner(year):
                         #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
                         #             names[award] = temp
                     else:
-                        if noun in directors or noun in titles.keys():
+                        if noun in directors or noun in titles:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
                         # else:
