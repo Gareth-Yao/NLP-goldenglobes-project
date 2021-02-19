@@ -207,7 +207,7 @@ def get_awards(year):
 
 
 def get_nominees(year):
-    print(actual_award_names)
+    #print(actual_award_names)
     with open('gg' + sys.argv[1] + '.json') as f:
         data = json.load(f)
     with open('titles.json', encoding='UTF-8') as f:
