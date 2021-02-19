@@ -65,7 +65,7 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 # needs IMDB Data to filter out names/movies (may need database for this). Knowledge Base
 # "X won Y" needs to find a binding list where X is a movie and Y is an award
 # Needs to find a way to combine first name entries and full name entries
-sentiments = {}
+sentiments, actresses, actors, directors, titles = {}, [], [], [], {}
 
 def get_hosts(year):
     try:
@@ -680,21 +680,16 @@ def get_presenters(year, data, directors, awards):
 
 
 def pre_ceremony(year):
+    global actresses, actors, directors, titles
     download_corpora.main()
     actors_download = request.urlopen("https://datasets.imdbws.com/name.basics.tsv.gz")
     titles_download = request.urlopen("https://datasets.imdbws.com/title.basics.tsv.gz")
-    '''This function loads/fetches/processes any data your program
-    will use, and stores that data in your DB or in a json, csv, or
-    plain text file. It is the first thing the TA will run when grading.
-    Do NOT change the name of this function or what it returns.'''
-
-    actresses = []
-    actors = []
-    directors = []
-    titles = {}
+    '''
     if path.exists('actors.txt') and path.exists('actresses.txt') and path.exists('directors.txt'):
         print('Actor files already exist. Skipping download')
     else:
+    '''
+    try:
         actors_zipped = gzip.GzipFile(fileobj=actors_download)
         actors_zipped.readline()
         for line in actors_zipped:
@@ -706,7 +701,7 @@ def pre_ceremony(year):
             if 'actress' in actor_info[4]:
                 actresses.append(actor_info[1].lower())
             directors.append(actor_info[1].lower())
-
+        '''
         with open('actors.txt', 'w', encoding='UTF-8') as actors_file:
             for actor in actors:
                 actor = re.sub(r'[^\w\s]','', actor)
@@ -719,7 +714,9 @@ def pre_ceremony(year):
             for director in directors:
                 director = re.sub(r'[^\w\s]','', director)
                 actors_file.write('%s\n' % director)
-
+        '''
+    except:
+        print('download failed')
     year = int(year)
     titles_zipped = gzip.GzipFile(fileobj=titles_download)
     schema = titles_zipped.readline().decode('UTF-8').split('\t')
@@ -743,41 +740,20 @@ def pre_ceremony(year):
             title_info[i] = title_info[i].lower()
             title[schema[i]] = title_info[i]
         titles[title['primaryTitle']] = title
-    #
-    #
-    #
+    '''
     with open('titles.json', 'w', encoding='UTF-8') as titles_file:
         json.dump(titles, titles_file)
+    '''
     print("Pre-ceremony processing complete.")
     return
 
-
-
-def main(year):
-    pre_ceremony(year)
-    # with open(sys.argv[1]) as f:
-    #     data = json.load(f)
-    # with open('titles.json', encoding='UTF-8') as f:
-    #     titles = json.load(f)
-    # with open('actors.txt', 'r', encoding='UTF-8') as f:
-    #     actors = f.read().splitlines()
-    # with open('actresses.txt', 'r', encoding='UTF-8') as f:
-    #     actresses = f.read().splitlines()
-    # with open('directors.txt', 'r', encoding='UTF-8') as f:
-    #     directors = f.read().splitlines()
-    # May be unnecessary
-    # preprocessed_data = [x for x in data if '#GoldenGlobes' in x['text'] or '#goldenglobes' in x['text']]
-
-    # get_presenters(2014, data, directors, OFFICIAL_AWARDS_1315)
-    # awards = get_awards(2013, data)
-
-    # winners = get_winner(2013)
-    # get_nominees(2013, data, actors, actresses, directors, titles)
-    #
-    #
-    # hosts = get_hosts(2013)
-
-
+def main():
+    '''This function calls your program. Typing "python gg_api.py"
+    will run this function. Or, in the interpreter, import gg_api
+    and then run gg_api.main(). This is the second thing the TA will
+    run when grading. Do NOT change the name of this function or
+    what it returns.'''
+    # Your code here
     answer = {"award_data": {"best screenplay - motion picture": {
         "nominees": ["zero dark thirty", "lincoln", "silver linings playbook", "argo"],
         "presenters": ["robert pattinson", "amanda seyfried"], "winner": "django unchained"},
@@ -953,15 +929,16 @@ def main(year):
 
     with open('output.json', 'w', encoding='UTF-8') as output_file:
         json.dump(output, output_file)
-
-    '''This function calls your program. Typing "python gg_api.py"
-    will run this function. Or, in the interpreter, import gg_api
-    and then run gg_api.main(). This is the second thing the TA will
-    run when grading. Do NOT change the name of this function or
-    what it returns.'''
-    # Your code here
     return
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    if sys.argv[1] == 'pre_ceremony':
+        try:
+            year = sys.argv[2]
+            pre_ceremony(year)
+        except:
+            print('Please input a year after pre_ceremony')
+    else:
+        tweet_f, year = sys.argv[1], sys.argv[2]
+        main(tweet_f, year)
