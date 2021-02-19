@@ -444,11 +444,11 @@ def get_nominees(year, data, actors, actresses, directors, titles):
     nominees = {}
     names = {}
     sensitive_words = ['supporting', 'actor','actress','of']
-    relevant_words = ['wish', 'hope', 'hoped', 'deserves', 'deserved', 'nominated', 'deserve', 'nominate', 'nominee', 'nominees', 'should']
+    relevant_words = ['wish', 'hope', 'hoped', 'deserves', 'deserved', 'nominated', 'deserve', 'nominate', 'nominee', 'nominees', 'should', 'pick', 'picked', 'picks', 'predict', 'predicted', 'predicts', 'think', 'thinks']
     # processed_data = [x for x in data if 'best motion picture - drama' in x['text'] or 'Best Motion Picture - Drama' in x['text']]
     processed_data = []
     for tweet_obj in data:
-        tweet = re.sub(r'[^\w\s]','', tweet_obj['text']).lower()
+        tweet = re.sub(r'[^\w\s]','', tweet_obj['text'])
         if any(word in tweet for word in relevant_words):
             processed_data.append(tweet)
     # processed_data = [x for x in data if 'wish' in x['text'].lower() or 'hope' in x['text'] or 'should\'ve' in x['text'] or
@@ -502,7 +502,7 @@ def get_nominees(year, data, actors, actresses, directors, titles):
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 70]
                 for award in possible_awards:
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
 
@@ -518,47 +518,51 @@ def get_nominees(year, data, actors, actresses, directors, titles):
                         if noun in actors:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     elif 'actress' in award:
                         if noun in actresses:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     elif 'director' in award:
                         if noun in directors:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     elif 'film' in award or 'motion picture' in award or 'series' in award:
                         if noun in titles.keys():
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
+                    elif award == 'cecil b. demille award':
+                        if noun in directors and noun != 'cecil b demille':
+                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                            names[award] = temp
                     else:
                         if noun in directors or noun in titles.keys():
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
     for award in names.keys():
         nominees[award] = sorted(names[award].items(), key=lambda key : key[1])[-5:]
     print(nominees)
