@@ -210,9 +210,9 @@ def get_nominees(year):
     #print(actual_award_names)
     with open('gg' + sys.argv[1] + '.json') as f:
         data = json.load(f)
-    with open('titles.json', encoding='UTF-8') as f:
-        titles = json.load(f)
-        titles = set(titles.keys())
+    with open(year + '_titles.txt', encoding='UTF-8') as f:
+        titles = f.read().splitlines()
+        titles = set(titles)
     with open('actors.txt', 'r', encoding='UTF-8') as f:
         actors = f.read().splitlines()
         actors = set(actors)
@@ -397,9 +397,9 @@ def get_winner(year):
     Do NOT change the name of this function or what it returns.'''
     # Your code here
     try:
-        with open('titles.json', 'r', encoding='UTF-8') as f:
-            titles = json.load(f)
-            titles = set(titles.keys())
+        with open(year + '_titles.txt', 'r', encoding='UTF-8') as f:
+            titles = f.read().splitlines()
+            titles = set(titles)
         with open('actors.txt', 'r', encoding='UTF-8') as f:
             actors = f.read().splitlines()
             actors = set(actors)
@@ -714,7 +714,7 @@ def get_presenters(year):
 
 
 def pre_ceremony(year):
-    global actresses, actors, directors, titles
+    actresses, actors, directors, titles
     download_corpora.main()
     actors_download = request.urlopen("https://datasets.imdbws.com/name.basics.tsv.gz")
     titles_download = request.urlopen("https://datasets.imdbws.com/title.basics.tsv.gz")
@@ -723,56 +723,66 @@ def pre_ceremony(year):
     else:
         actors_zipped = gzip.GzipFile(fileobj=actors_download)
         actors_zipped.readline()
-        for line in actors_zipped:
-            actor_info = line.decode('UTF-8').split('\t')
-            if actor_info[2] == '\\N':
-                continue
-            if 'actor' in actor_info[4]:
-                actors.append(actor_info[1].lower())
-            if 'actress' in actor_info[4]:
-                actresses.append(actor_info[1].lower())
-            directors.append(actor_info[1].lower())
-        with open('actors.txt', 'w', encoding='UTF-8') as actors_file:
-            for actor in actors:
-                actor = re.sub(r'[^\w\s]','', actor)
-                actors_file.write('%s\n' % actor)
-        with open('actresses.txt', 'w', encoding='UTF-8') as actors_file:
-            for actress in actresses:
-                actress = re.sub(r'[^\w\s]','', actress)
-                actors_file.write('%s\n' % actress)
-        with open('directors.txt', 'w', encoding='UTF-8') as actors_file:
-            for director in directors:
-                director = re.sub(r'[^\w\s]','', director)
-                actors_file.write('%s\n' % director)
+        try:
+            actors_file = open('actors.txt', 'w', encoding='UTF-8')
+            actresses_file = open('actresses.txt', 'w', encoding='UTF-8')
+            directors_file = open('directors.txt', 'w', encoding='UTF-8')
+            for line in actors_zipped:
+                actor_info = line.decode('UTF-8').split('\t')
+                if actor_info[2] == '\\N':
+                    continue
+                name = re.sub(r'[^\w\s]', '', actor_info[1].lower())
+                if 'actor' in actor_info[4]:
+                    actors_file.write('%s\n' % name)
+                if 'actress' in actor_info[4]:
+                    actresses_file.write('%s\n' % name)
+                directors_file.write('%s\n' % name)
+        except IOError or FileNotFoundError:
+            print("Cannot open file")
+        finally:
+            actors_file.close()
+            actresses_file.close()
+            directors_file.close()
+
+
+    if path.exists(year + '_titles.txt'):
+        print('titles file already exist. Skipping download')
+        print("Pre-ceremony processing complete.")
+        return
     year = int(year)
     titles_zipped = gzip.GzipFile(fileobj=titles_download)
     schema = titles_zipped.readline().decode('UTF-8').split('\t')
     schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
+    try:
+        titles_file = open(str(year) + '_titles.txt', 'w', encoding='UTF-8')
+        for line in titles_zipped:
+            title_info = line.decode('UTF-8').split('\t')
+            title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
 
-    for line in titles_zipped:
-        title_info = line.decode('UTF-8').split('\t')
-        title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
-
-        try:
-            if title_info[5] == '\\N' or \
-                    (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
-                    (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
-                    (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
+            try:
+                if title_info[5] == '\\N' or \
+                        (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
+                        (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
+                        (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
+                    continue
+            except ValueError:
                 continue
-        except ValueError:
-            continue
+            titles_file.write('%s\n' % title_info[2].lower())
+    except IOError or FileNotFoundError:
+        print("Cannot open file")
+            # title = {}
+            # for i in range(len(schema)):
+            #     title_info[i] = title_info[i].lower()
+            #     title[schema[i]] = title_info[i]
+            # titles[title['primaryTitle']] = title
 
-        title = {}
-        for i in range(len(schema)):
-            title_info[i] = title_info[i].lower()
-            title[schema[i]] = title_info[i]
-        titles[title['primaryTitle']] = title
-    with open('titles.json', 'w', encoding='UTF-8') as titles_file:
-        json.dump(titles, titles_file)
+
+        # json.dump(titles, titles_file)
     print("Pre-ceremony processing complete.")
     return
 
 def main(year):
+    pre_ceremony(year)
     '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
