@@ -1,3 +1,4 @@
 git+ssh://git@github.com/seatgeek/fuzzywuzzy.git@0.18.0#egg=fuzzywuzzy
 python-Levenshtein
 textblob
+spacy
