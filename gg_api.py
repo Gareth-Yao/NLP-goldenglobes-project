@@ -9,9 +9,13 @@ import gzip
 import re
 import Levenshtein as lev
 import spacy
+from os import path
 from fuzzywuzzy import fuzz
 from collections import Counter
+
 from collections import OrderedDict
+from nltk import FreqDist
+import nltk
 
 OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
                         'best performance by an actress in a motion picture - drama',
@@ -65,41 +69,50 @@ sentiments = {}
 
 def get_hosts(year):
     try:
-        with open('titles.json', 'r', encoding='UTF-8') as f:
-            titles = json.load(f)
-        with open('actors.txt', 'r', encoding='UTF-8') as f:
-            actors = f.read().splitlines()
-        with open('actresses.txt', 'r', encoding='UTF-8') as f:
-            actresses = f.read().splitlines()
         with open('directors.txt', 'r', encoding='UTF-8') as f:
             directors = f.read().splitlines()
+            directors = set(directors)
         with open('gg' + str(year) + ".json") as f:
             data = json.load(f)
     except IOError or FileNotFoundError:
         print("File not found. Run Preceremony individually")
         sys.exit()
-
+    # stop_words = nltk.corpus.stopwords.words('english')
+    # stop_words.extend(['goldenglobe','goldenglobes'])
+    # stop_words = set(stop_words)
     names = {}
-    processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text']]
-    re_search = {}
+    processed_data = [x for x in data if 'Host' in x['text'] or 'host' in x['text'] and 'next year' not in x['text']]
     counter = 0
+    freq_map = []
     for tweet in processed_data:
         # print((counter / len(processed_data)) * 100)
         # text = TextBlob(tweet['text'])
-        text = re.findall('[a-zA-Z0-9]+', tweet['text'])
+        # text = re.sub('[^a-zA-Z0-9 ]', '', tweet['text'])
+        text = re.sub('[^a-zA-Z0-9 ]', '', tweet['text'])
         # text = tweet['text'].split(' ')
-        split_sentence = TextBlob(' '.join(text))
+        sentence = TextBlob(text).sentences[0]
         capitalized_words = []
         temp = ""
-        for word in text:
+        for word in sentence.tokens:
             if len(word) > 0 and word[0].isupper():
                 temp += " " + word
-            elif  temp != "":
+            elif temp != "":
+                noun = temp.lower()[1:]
+                # if not any(x.startswith(noun) for x in freq_map):
                 capitalized_words.append(temp.lower()[1:])
+                # if noun in names.keys() or noun in directors:
+                #     names[noun] = names.get(noun, 0) + 1
+                #     sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
                 temp = ""
         if temp != "":
+            # noun = temp.lower()[1:]
+            # if noun in names.keys() or noun in directors:
+            #     names[noun] = names.get(noun, 0) + 1
+            #     sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
             capitalized_words.append(temp.lower()[1:])
-        for noun in capitalized_words:
+        names_in_tweet = [x for x in capitalized_words if ' ' in x and x in directors]
+        freq_map.extend(names_in_tweet)
+        # for noun in names_in_tweet:
             # if noun not in re_search.keys():
             #     # p = re.compile('^' + noun + '.*')
             #     # filtered_actors = list(filter(p.match, actors))
@@ -108,17 +121,17 @@ def get_hosts(year):
             # filtered_actors = re_search[noun]
             # for name in filtered_actors:
             #     names[name] = names.get(name, 0) + 1
-            if noun in names.keys() or noun in directors:
-                names[noun] = names.get(noun, 0) + 1
-                sentiments[noun] = sentiments.get(noun, 0) + split_sentence.sentences[0].polarity * split_sentence.sentences[0].subjectivity
+            # if noun in names.keys() or noun in directors:
+            #     names[noun] = names.get(noun, 0) + 1
+            #     sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
 
-            n = list(names.keys())
-            for name in n[:10]:
-                if name.startswith(noun) and name != noun:
-                    if noun in names.keys():
-                        sentiments[noun] = sentiments.get(noun, 0) - split_sentence.sentences[0].polarity * \
-                                           split_sentence.sentences[0].subjectivity
-                    names[name] = names[name] + 1
+            # n = list(names.keys())
+            # for name in n[:5]:
+            #     if name.startswith(noun) and name != noun:
+            #         if noun in names.keys():
+            #             sentiments[noun] = sentiments.get(noun, 0) - split_sentence.sentences[0].polarity * \
+            #                                split_sentence.sentences[0].subjectivity
+            #         names[name] = names[name] + 1
             # if noun not in re_search.keys():
             #     re_search[noun] = heapq.nlargest(10, names, key=names.get)
             # n = re_search[noun]
@@ -134,8 +147,10 @@ def get_hosts(year):
     # names_sorted = sorted(names.items(), key=lambda x: x[1], reverse=True)
     # sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
     # sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
-    hosts = heapq.nlargest(2, names, key=names.get)
-    return hosts
+    freq_map = FreqDist(freq_map)
+    freq_map = freq_map.most_common(2)
+    # hosts = heapq.nlargest(2, names, key=names.get)
+    return [freq_map[0][0], freq_map[1][0]]
 
 def get_awards(year, data):
     '''Awards is a list of strings. Do NOT change the name
@@ -258,12 +273,14 @@ def get_nominees(year, data, actors, actresses, directors, titles):
     # processed_data = [x for x in data if 'wish' in x['text'].lower() or 'hope' in x['text'] or 'should\'ve' in x['text'] or
     #                   ('hoped' in x['text'] or 'deserves' in x['text'].split() or 'deserved' in x['text'].split() or 'nominated' in x['text'].split() or 'nominee' in x['text'].lower())]
     for tweet in processed_data:
-        words = tweet.split()
-        words = ' '.join([x.capitalize() if x.lower() in sensitive_words else x for x in words if '@' not in x and not x == 'RT' and '#GoldenGlobe' not in x and '#goldenglobe' not in x and x != 'or'])
+        # words = tweet.split()
+        # words = ' '.join([x.capitalize() if x.lower() in sensitive_words else x for x in words if '@' not in x and not x == 'RT' and '#GoldenGlobe' not in x and '#goldenglobe' not in x and x != 'or'])
+
+        for sensitive_word in sensitive_words:
+            words = re.compile(re.escape(sensitive_word), re.IGNORECASE).sub(sensitive_word.capitalize(), words)
         words = re.compile(re.escape('movie'),re.IGNORECASE).sub('Motion Picture', words)
         words = re.compile(re.escape('tv'),re.IGNORECASE).sub('Television', words)
         words = re.compile(re.escape('in a')).sub('In A', words)
-
         words = re.compile(re.escape('miniseries'),re.IGNORECASE).sub('Mini-Series', words)
         textb = TextBlob(words)
         capitalized_words = []
@@ -393,10 +410,9 @@ def get_winner(year):
         sys.exit()
 
     sensitive_words = ['supporting', 'actor','actress','of']
-    sensitive_words.append('of')
     names = {}
     winners = {}
-    processed_data = [x for x in data if 'hop' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and
+    processed_data = [x for x in data if 'hop' not in x['text'].lower() and 'wish' not in x['text'] and 'should\'ve' not in x['text'] and ('best' in x['text'].lower() or 'award' in x['text'].lower()) and
                       ('goes to' in x['text'] or 'wins' in x['text'].split() or 'won' in x['text'].split() or 'awarded' in x['text'].split() or 'receives' in x['text'].lower())]
     counter = 0
     for tweet in processed_data:
@@ -424,6 +440,7 @@ def get_winner(year):
                 if checkHashtag and len(word) > 0 and word[0].isupper():
                     addedSpace = ''.join([(' ' + x) if x.isupper() else x for x in word])[1:]
                     capitalized_words.append(addedSpace.lower())
+
                     checkHashtag = False
                 elif len(word) > 0 and (word[0].isupper() or word == '-' or word == ','):
                     temp += " " + word
@@ -431,6 +448,9 @@ def get_winner(year):
                     continue
                 elif temp != "":
                     capitalized_words.append(temp.lower()[1:])
+                    if temp.lower()[1:] in directors:
+                        sentiments[temp.lower()[1:]] = sentiments.get(temp.lower()[1:], 0) + sentence.polarity * \
+                                           sentence.subjectivity
                     temp = ""
                 if word == '#':
                     checkHashtag = True
@@ -442,86 +462,80 @@ def get_winner(year):
         awards = {}
 
         # text = tweet['text'].split(' ')
-        sentence_sentiment = TextBlob(' '.join(re.findall('[a-zA-Z0-9]+', tweet['text'])))
+        # sentence_sentiment = TextBlob(' '.join(re.findall('[a-zA-Z0-9]+', tweet['text'])))
         for noun in capitalized_words:
             if noun.lower() in OFFICIAL_AWARDS_1315:
-                if 'best original score' in noun.lower():
-                    print()
                 if noun.lower() not in names.keys():
                     names[noun.lower()] = dict()
                 awards[noun.lower()] = 500
-            if noun in directors:
-                sentiments[noun] = sentiments.get(noun, 0) + sentence_sentiment.sentences[0].polarity * \
-                                   sentence_sentiment.sentences[0].subjectivity
+
 
         if len(awards.keys()) == 0:
             for noun in capitalized_words:
+                if 'best' not in noun:
+                    continue
                 if 'actor' in noun or 'actress' in noun:
                     noun = 'performance ' + noun
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
-
-
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
                 possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in OFFICIAL_AWARDS_1315 if fuzz.token_sort_ratio(noun.lower(), x) > 80]
                 for award in possible_awards:
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
 
-        for award in awards.keys():
-            if award.lower() not in names.keys():
-                names[award.lower()] = dict()
+        # for award in awards.keys():
+        #     if award.lower() not in names.keys():
+        #         names[award.lower()] = dict()
 
         if len(awards.keys()) != 0:
             for noun in capitalized_words:
-                if 'life of pi' in noun:
-                    print()
                 for award in awards.keys():
-                    temp = names[award]
+                    temp = names.get(award.lower(), dict())
                     if 'actor' in award:
                         if noun in actors:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     elif 'actress' in award:
                         if noun in actresses:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     elif 'director' in award:
                         if noun in directors:
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     elif 'film' in award or 'motion picture' in award or 'series' in award:
                         if noun in titles.keys():
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
                     else:
                         if noun in directors or noun in titles.keys():
                             temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
                             names[award] = temp
-                        else:
-                            for tempkey in temp.keys():
-                                if noun.lower() in tempkey:
-                                    temp[tempkey] = temp.get(tempkey, 0) + awards[award]
-                                    names[award] = temp
+                        # else:
+                        #     for tempkey in temp.keys():
+                        #         if noun.lower() in tempkey:
+                        #             temp[tempkey] = temp.get(tempkey, 0) + awards[award]
+                        #             names[award] = temp
 
 
 
@@ -680,32 +694,35 @@ def pre_ceremony(year):
     actors = []
     directors = []
     titles = {}
-    actors_zipped = gzip.GzipFile(fileobj=actors_download)
-    actors_zipped.readline()
-    for line in actors_zipped:
-        actor_info = line.decode('UTF-8').split('\t')
-        if actor_info[2] == '\\N':
-            continue
-        if 'actor' in actor_info[4]:
-            actors.append(actor_info[1].lower())
-        if 'actress' in actor_info[4]:
-            actresses.append(actor_info[1].lower())
-        directors.append(actor_info[1].lower())
+    if path.exists('actors.txt') and path.exists('actresses.txt') and path.exists('directors.txt'):
+        print('Actor files already exist. Skipping download')
+    else:
+        actors_zipped = gzip.GzipFile(fileobj=actors_download)
+        actors_zipped.readline()
+        for line in actors_zipped:
+            actor_info = line.decode('UTF-8').split('\t')
+            if actor_info[2] == '\\N':
+                continue
+            if 'actor' in actor_info[4]:
+                actors.append(actor_info[1].lower())
+            if 'actress' in actor_info[4]:
+                actresses.append(actor_info[1].lower())
+            directors.append(actor_info[1].lower())
 
-    with open('actors.txt', 'w', encoding='UTF-8') as actors_file:
-        for actor in actors:
-            actor = re.sub(r'[^\w\s]','', actor)
-            actors_file.write('%s\n' % actor)
-    with open('actresses.txt', 'w', encoding='UTF-8') as actors_file:
-        for actress in actresses:
-            actress = re.sub(r'[^\w\s]','', actress)
-            actors_file.write('%s\n' % actress)
-    with open('directors.txt', 'w', encoding='UTF-8') as actors_file:
-        for director in directors:
-            director = re.sub(r'[^\w\s]','', director)
-            actors_file.write('%s\n' % director)
+        with open('actors.txt', 'w', encoding='UTF-8') as actors_file:
+            for actor in actors:
+                actor = re.sub(r'[^\w\s]','', actor)
+                actors_file.write('%s\n' % actor)
+        with open('actresses.txt', 'w', encoding='UTF-8') as actors_file:
+            for actress in actresses:
+                actress = re.sub(r'[^\w\s]','', actress)
+                actors_file.write('%s\n' % actress)
+        with open('directors.txt', 'w', encoding='UTF-8') as actors_file:
+            for director in directors:
+                director = re.sub(r'[^\w\s]','', director)
+                actors_file.write('%s\n' % director)
 
-
+    year = int(year)
     titles_zipped = gzip.GzipFile(fileobj=titles_download)
     schema = titles_zipped.readline().decode('UTF-8').split('\t')
     schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
@@ -718,7 +735,7 @@ def pre_ceremony(year):
             if title_info[5] == '\\N' or \
                     (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
                     (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
-                    (title_info[1] == 'tvEpisode'):
+                    (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
                 continue
         except ValueError:
             continue
@@ -739,7 +756,7 @@ def pre_ceremony(year):
 
 
 def main(year):
-    # pre_ceremony(2013)
+    pre_ceremony(year)
     # with open(sys.argv[1]) as f:
     #     data = json.load(f)
     # with open('titles.json', encoding='UTF-8') as f:
