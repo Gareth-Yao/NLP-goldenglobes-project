@@ -221,7 +221,7 @@ def get_awards(year):
 
 
 def get_nominees(year):
-    with open('gg' + sys.argv[1] + '.json') as f:
+    with open('gg' + year + '.json') as f:
         data = json.load(f)
     with open(year + '_titles.txt', encoding='UTF-8') as f:
         titles = f.read().splitlines()
@@ -817,8 +817,9 @@ def data_exploration(year):
         titleTypes.extend(title_info[8].split(','))
     titleTypes = list(set(titleTypes))
     print(titleTypes)
+
 def main(year):
-    pre_ceremony(year)
+    #pre_ceremony(year)
     # data_exploration(year)
     '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
