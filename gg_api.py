@@ -65,8 +65,8 @@ OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - mu
 # needs IMDB Data to filter out names/movies (may need database for this). Knowledge Base
 # "X won Y" needs to find a binding list where X is a movie and Y is an award
 # Needs to find a way to combine first name entries and full name entries
-sentiments, actresses, actors, directors, titles = {}, [], [], [], {}
-actual_award_names = []
+sentiments = {}
+dresses = {}
 
 def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
@@ -104,10 +104,13 @@ def get_hosts(year):
                 sentiments[noun] = sentiments.get(noun, 0) + sentence.polarity * sentence.subjectivity
             capitalized_words.append(temp.lower()[1:])
         names_in_tweet = [x for x in capitalized_words if x in directors and not any(y.startswith(x) and y != x for y in freq_map[:10])]
+        # for x in capitalized_words:
+        #         for y in sentiments.keys():
+        #             if y.startswith(x) and y != x:
+        #                 sentiments[y] = sentiments.get(y, 0) + sentence.polarity * sentence.subjectivity
         freq_map.extend(names_in_tweet)
     freq_map = FreqDist(freq_map)
     freq_map = freq_map.most_common(2)
-    hosts = heapq.nlargest(2, names, key=names.get)
     return [freq_map[0][0], freq_map[1][0]]
 
 def get_awards(year):
@@ -117,6 +120,9 @@ def get_awards(year):
     try:
         with open('gg' + str(year) + ".json") as f:
             data = json.load(f)
+        with open('directors.txt', 'r', encoding='UTF-8') as f:
+            directors = f.read().splitlines()
+            directors = set(directors)
     except IOError or FileNotFoundError:
         print("File not found. Run Preceremony individually")
         sys.exit()
@@ -130,6 +136,14 @@ def get_awards(year):
 
     for tweet in processed_data:
         s_tweet = re.findall('[a-zA-Z0-9]+', tweet["text"].lower())
+        if 'dress' in tweet['text'].lower():
+            textb = TextBlob(' '.join(s_tweet))
+            for noun in textb.noun_phrases:
+                if noun in directors:
+                    dresses[noun] = dresses.get(noun, 0) + textb.sentences[0].polarity * textb.sentences[0].subjectivity
+                for y in dresses.keys():
+                    if y.startswith(noun) and y != noun:
+                        dresses[y] = sentiments.get(y, 0) + textb.sentences[0].polarity * textb.sentences[0].subjectivity
         if "won" in s_tweet:
             s_tweet = s_tweet[s_tweet.index("won")+1:]
         elif "wins" in s_tweet:
@@ -207,7 +221,6 @@ def get_awards(year):
 
 
 def get_nominees(year):
-    #print(actual_award_names)
     with open('gg' + sys.argv[1] + '.json') as f:
         data = json.load(f)
     with open(year + '_titles.txt', encoding='UTF-8') as f:
@@ -312,7 +325,7 @@ def get_nominees(year):
                 if 'supporting' in noun:
                     noun = noun.replace('supporting', 'in a supporting role')
                 # possible_awards = [(x,lev.setratio(x.split(' '), noun.lower().split(' ')) * 10) for x in OFFICIAL_AWARDS_1315 if lev.setratio(x.split(' '), noun.lower().split(' ')) > 0.7]
-                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in real_awards if fuzz.token_sort_ratio(noun.lower(), x) > 70]
+                possible_awards = [(x, fuzz.token_sort_ratio(noun.lower(), x)) for x in real_awards if fuzz.token_sort_ratio(noun.lower(), x) > 65]
                 for award in possible_awards:
                     award_phrases.append(temp)
                     awards[award[0]] = awards.get(award[0], 0) + award[1]
@@ -362,14 +375,19 @@ def get_nominees(year):
                                     temp[tempkey] = temp.get(tempkey, 0) + awards[award]
                                     names[award] = temp
                     elif 'film' in award or 'motion picture' in award or 'series' in award:
-                        if noun in titles:
-                            if noun == 'zero dark thirty':
-                                print("yes3")
-                            temp[noun.lower()] = temp.get(noun.lower(), 0) + 2 * awards[award]
-                            names[award] = temp
-                        elif noun not in all_stopwords and noun not in award_phrases and noun not in directors and noun.isalpha():
-                            temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
-                            names[award] = temp
+                        if noun not in all_stopwords and noun not in award_phrases and noun not in directors:
+                            if noun in titles:
+                                temp[noun.lower()] = temp.get(noun.lower(), 0) + 5 * awards[award]
+                                names[award] = temp
+                            else:
+                                temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                                names[award] = temp
+                        # if noun in titles:
+                        #     temp[noun.lower()] = temp.get(noun.lower(), 0) + 2 * awards[award]
+                        #     names[award] = temp
+                        # elif noun not in all_stopwords and noun not in award_phrases and noun not in directors and noun.isalpha():
+                        #     temp[noun.lower()] = temp.get(noun.lower(), 0) + awards[award]
+                        #     names[award] = temp
                         else:
                             for tempkey in temp.keys():
                                 if noun.lower() in tempkey:
@@ -388,7 +406,7 @@ def get_nominees(year):
                                 if noun.lower() in tempkey:
                                     temp[tempkey] = temp.get(tempkey, 0) + awards[award]
                                     names[award] = temp
-    print(names['best motion picture - drama'])
+    # print(names['best motion picture - drama'])
     for award in names.keys():
         nominees[award] = sorted(names[award].items(), key=lambda key : key[1])[-5:]
         nominees[award] = [x[0] for x in nominees[award]]
@@ -396,7 +414,7 @@ def get_nominees(year):
     for award in real_awards:
         if award not in nominees.keys():
             nominees[award] = dict()
-    #print(nominees)
+    print(nominees['best performance by an actress in a television series - comedy or musical'])
     return nominees
 
 def get_winner(year):
@@ -722,7 +740,6 @@ def get_presenters(year):
 
 
 def pre_ceremony(year):
-    actresses, actors, directors, titles
     download_corpora.main()
     actors_download = request.urlopen("https://datasets.imdbws.com/name.basics.tsv.gz")
     titles_download = request.urlopen("https://datasets.imdbws.com/title.basics.tsv.gz")
@@ -771,7 +788,9 @@ def pre_ceremony(year):
                 if title_info[5] == '\\N' or \
                         (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
                         (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
-                        (title_info[1] == 'tvEpisode') or 'reality-tv' in title_info[7]:
+                        (title_info[1] == 'tvEpisode') or 'Reality-TV' in title_info[8] or title_info[4] == 1 or \
+                        title_info[2] == 'tvSpecial' or title_info[2] == 'video' or title_info[2] == 'videoGame' or \
+                        title_info[2] == 'tvShort' or title_info[2] == 'short' or '\\N' in title_info[8] or 'Talk-Show' in title_info[8]:
                     continue
             except ValueError:
                 continue
@@ -788,9 +807,32 @@ def pre_ceremony(year):
         # json.dump(titles, titles_file)
     print("Pre-ceremony processing complete.")
     return
-
+def data_exploration(year):
+    titles_download = request.urlopen("https://datasets.imdbws.com/title.basics.tsv.gz")
+    year = int(year)
+    titles_zipped = gzip.GzipFile(fileobj=titles_download)
+    schema = titles_zipped.readline().decode('UTF-8').split('\t')
+    schema[len(schema) - 1] = schema[len(schema) - 1][:-1]
+    titleTypes = []
+    for line in titles_zipped:
+        title_info = line.decode('UTF-8').split('\t')
+        title_info[len(title_info) - 1] = title_info[len(title_info) - 1][:-1]
+        try:
+            if title_info[5] == '\\N' or \
+                    (title_info[6] == '\\N' and (int(title_info[5]) < year - 2 or int(title_info[5]) > year)) or \
+                    (title_info[6] != '\\N' and int(title_info[6]) < year - 2 or int(title_info[5]) > year) or \
+                    (title_info[1] == 'tvEpisode') or 'Reality-TV' in title_info[8] or title_info[4] == 1 or \
+                    title_info[2] == 'tvSpecial' or title_info[2] == 'video' or title_info[2] == 'videoGame' or \
+                    title_info[2] == 'tvShort' or title_info[2] == 'short' or '\\N' in title_info[8] or 'Talk-Show' in title_info[8]:
+                continue
+        except ValueError:
+            continue
+        titleTypes.extend(title_info[8].split(','))
+    titleTypes = list(set(titleTypes))
+    print(titleTypes)
 def main(year):
     pre_ceremony(year)
+    # data_exploration(year)
     '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
@@ -804,15 +846,16 @@ def main(year):
         actual_award_names = OFFICIAL_AWARDS_1315
     else:
         actual_award_names = OFFICIAL_AWARDS_1819
-    hosts = get_hosts(year)
+    # hosts = get_hosts(year)
     #award_data = answer["award_data"]
     # awards = get_awards(year)
     nominees = get_nominees(year)
-    print(nominees)
     # presenters = get_presenters(year)
     # winners = get_winner(year)
     # sentiments_sorted_descend = sorted(sentiments.items(), key=lambda x: x[1], reverse=True)
     # sentiments_sorted_ascend = sorted(sentiments.items(), key=lambda x: x[1])
+    # dresses_sorted_descend = sorted(dresses.items(), key=lambda x: x[1], reverse=True)
+    # dresses_sorted_ascend = sorted(dresses.items(), key=lambda x: x[1])
     #print(sentiments_sorted_descend)
     #print(sentiments_sorted_ascend)
     # print("Host:", ', '.join([x.title() for x in hosts]))
@@ -841,9 +884,11 @@ def main(year):
     ## need to replace this with real sentiments
     # print('Most Loved Person:', sentiments_sorted_descend[0][0].title())
     # print('Most Hated Person:', sentiments_sorted_ascend[0][0].title())
+    # print('Best Dressed Person:', dresses_sorted_descend[0][0].title())
+    # print('Worst Dressed Person:', dresses_sorted_ascend[0][0].title())
     # with open('output.json', 'w', encoding='UTF-8') as output_file:
     #     json.dump(output, output_file)
-    # return
+    return
 
 
 if __name__ == '__main__':
